@@ -1,0 +1,535 @@
+/* RESET & VARIABLES - updated colors */
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+:root {
+--bg: #0F1117;
+/* dark background */
+--surface: #1a1d23;
+/* card background */
+--text-primary: #ffffff;
+--text-secondary: #b0b3b8;
+--accent: #28a745;
+/* green */
+--accent-soft: #2ecc71;
+/* lighter green */
+--highlight: #fbff00;
+/* yellow */
+--border-light: #2a2e35;
+--shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+--shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+--radius: 32px;
+--radius-sm: 20px;
+}
+
+body {
+font-family: 'Inter', system-ui, -apple-system, sans-serif;
+background: var(--bg);
+color: var(--text-primary);
+line-height: 1.5;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+position: relative;
+overflow-x: hidden;
+}
+
+/* ---------- ANIMATED BACKGROUND LAYERS ---------- */
+/* Update your existing bg-layers */
+.bg-layers {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+overflow: hidden;
+background: #0a0a0a; /* Deep base */
+}
+
+.moving-gradient {
+position: absolute;
+width: 200%;
+height: 200%;
+background: radial-gradient(circle at center, #1a1b3a 0%, #0a0a0a 70%);
+animation: gradientMove 15s ease-infinite;
+}
+/* 1. The Container defines the 3D "Camera" */
+.phone-mockup-container {
+perspective: 1000px; /* Adjust for more/less dramatic tilt */
+display: flex;
+justify-content: center;
+padding: 40px 20px;
+}
+
+/* 2. The Phone Frame logic */
+.floating-phone > div {
+transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+transform-style: preserve-3d;
+}
+
+/* 3. The Hover Effect: Move back (Z-axis) and tilt */
+.floating-phone:hover > div {
+/* Moves the phone slightly away (-50px) and tilts it back */
+transform: translateZ(-50px) rotateX(10deg);
+box-shadow:
+0 40px 80px rgba(0, 0, 0, 0.8),
+inset 0 0 2px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* 4. Add Depth to the Image (The Parallax Layer) */
+.floating-phone:hover img {
+/* Push the screen content 'deeper' into the frame on hover */
+transform: translateZ(20px) scale(0.98);
+transition: transform 0.5s ease;
+}
+.float-item {
+position: absolute;
+width: 300px;
+height: 300px;
+background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+filter: blur(50px);
+border-radius: 50%;
+animation: floatAround 20s infinite linear;
+}
+
+/* Position the orbs differently */
+.float-item:nth-child(2) { top: 10%; left: 10%; animation-duration: 25s; }
+.float-item:nth-child(3) { bottom: 10%; right: 10%; animation-duration: 30s; background: radial-gradient(circle,
+rgba(168, 85, 247, 0.15) 0%, transparent 70%); }
+.float-item:nth-child(4) { top: 50%; left: 50%; animation-duration: 20s; }
+
+@keyframes gradientMove {
+0%, 100% { transform: translate(-25%, -25%); }
+50% { transform: translate(0%, 0%); }
+}
+
+@keyframes floatAround {
+0% { transform: translate(0, 0) rotate(0deg); }
+33% { transform: translate(100px, 50px) rotate(120deg); }
+66% { transform: translate(-50px, 100px) rotate(240deg); }
+100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+@keyframes rotateGradient {
+0% {
+transform: rotate(0deg) scale(1);
+}
+
+50% {
+transform: rotate(5deg) scale(1.1);
+}
+
+100% {
+transform: rotate(0deg) scale(1);
+}
+}
+
+
+
+.float-item:nth-child(1) {
+width: 350px;
+height: 350px;
+top: 5%;
+left: -15%;
+background: var(--accent);
+animation-duration: 25s;
+animation-delay: -3s;
+}
+.floating-phone {
+animation: levitate 2s ease-in-out infinite;
+}
+
+@keyframes levitate {
+
+0%,
+100% {
+transform: translateY(0);
+}
+
+50% {
+transform: translateY(-15px);
+}
+}
+.float-item:nth-child(2) {
+width: 450px;
+height: 450px;
+bottom: 0%;
+right: -20%;
+background: var(--highlight);
+border-radius: 10px;
+opacity: 0.08;
+animation-duration: 30s;
+animation-delay: -7s;
+}
+
+.float-item:nth-child(3) {
+width: 250px;
+height: 250px;
+top: 40%;
+right: 15%;
+background: #28a745;
+opacity: 0.12;
+animation-duration: 20s;
+animation-delay: -2s;
+}
+
+@keyframes float {
+0% {
+transform: translate(0, 0) scale(1);
+}
+
+33% {
+transform: translate(40px, -40px) scale(1.15);
+}
+
+66% {
+transform: translate(-30px, 30px) scale(0.9);
+}
+
+100% {
+transform: translate(0, 0) scale(1);
+}
+}
+
+/* main content sits above bg layers */
+main,
+nav,
+footer {
+position: relative;
+z-index: 2;
+}
+
+/* typography */
+h1,
+h2,
+h3 {
+font-weight: 800;
+letter-spacing: -0.02em;
+line-height: 1.2;
+}
+
+/* mobile-first spacing */
+section {
+padding: 3rem 1.5rem;
+}
+
+.container {
+max-width: 480px;
+margin: 0 auto;
+width: 100%;
+}
+
+/* navigation (glass on dark) */
+nav {
+position: sticky;
+top: 0;
+background: rgba(15, 17, 23, 0.8);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+padding: 1rem 1.5rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid var(--border-light);
+z-index: 100;
+}
+
+.logo {
+font-weight: 900;
+font-size: 1.4rem;
+color: var(--text-primary);
+letter-spacing: -0.5px;
+}
+
+.logo span {
+color: var(--highlight);
+/* yellow dot */
+}
+
+.nav-cta {
+background: var(--accent);
+color: #ffffff;
+border: none;
+padding: 0.6rem 1.4rem;
+border-radius: 40px;
+font-weight: 600;
+font-size: 0.9rem;
+text-decoration: none;
+transition: background 0.2s;
+box-shadow: var(--shadow-sm);
+}
+
+.nav-cta:hover {
+background: #2ecc71;
+}
+
+/* hero */
+.hero {
+padding-top: 2rem;
+text-align: center;
+}
+
+.hero h1 {
+font-size: 2.8rem;
+margin-bottom: 1rem;
+font-weight: 900;
+}
+
+.hero .highlight {
+color: var(--highlight);
+background: rgba(251, 255, 0, 0.15);
+padding: 0 0.2rem;
+}
+
+
+
+@keyframes shine {
+to { background-position: 200% center; }
+}
+
+/* Subtle pulse for the primary CTA */
+.btn-primary {
+animation: pulseGlow 4s infinite;
+}
+
+@keyframes pulseGlow {
+0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+50% { box-shadow: 0 0 20px 10px rgba(99, 102, 241, 0); }
+}
+
+.hero p {
+font-size: 1.1rem;
+color: var(--text-secondary);
+max-width: 320px;
+margin: 0 auto 2rem;
+}
+
+/* mockup (dark theme) */
+.mockup-wrapper {
+display: flex;
+justify-content: center;
+margin: 2.5rem 0 1rem;
+}
+
+.device-frame {
+width: 200px;
+height: 400px;
+background: #1e2128;
+/* darker frame */
+border-radius: 40px;
+padding: 10px;
+box-shadow: 0 30px 40px -20px rgba(0, 0, 0, 0.8),
+inset 0 0 0 2px rgba(255, 255, 255, 0.05);
+position: relative;
+}
+
+.device-screen {
+width: 100%;
+height: 100%;
+background: #0a0c12;
+border-radius: 32px;
+overflow: hidden;
+background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400"
+    fill="none">
+    <path d="M30 80h140v10H30zM30 120h100v6H30zM30 160h140v6H30zM30 200h80v6H30zM30 240h120v6H30zM30 280h60v6H30z"
+        fill="%2328a745" opacity="0.3" />
+    <circle cx="100" cy="340" r="20" fill="%23fbff00" opacity="0.2" />
+</svg>');
+background-size: cover;
+background-position: center;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.device-screen i {
+font-size: 3rem;
+color: var(--accent);
+opacity: 0.9;
+}
+
+/* CTA buttons */
+.cta-group {
+display: flex;
+flex-direction: column;
+gap: 0.8rem;
+margin-top: 2rem;
+}
+
+.btn-primary {
+background: var(--accent);
+color: #ffffff;
+padding: 1.2rem 1.5rem;
+border-radius: 60px;
+font-weight: 700;
+font-size: 1.1rem;
+text-decoration: none;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 0.5rem;
+box-shadow: var(--shadow-md);
+transition: transform 0.1s, background 0.2s;
+border: none;
+width: 100%;
+}
+
+.btn-primary:active {
+transform: scale(0.98);
+}
+
+.btn-secondary {
+background: transparent;
+border: 1.5px solid var(--border-light);
+color: var(--text-primary);
+padding: 1.2rem 1.5rem;
+border-radius: 60px;
+font-weight: 600;
+font-size: 1.1rem;
+text-decoration: none;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 0.5rem;
+transition: background 0.2s, border-color 0.2s;
+width: 100%;
+}
+
+.btn-secondary i {
+color: var(--accent);
+}
+
+.btn-secondary:active {
+background: rgba(255, 255, 255, 0.05);
+border-color: var(--accent);
+}
+
+/* features (minimal cards) */
+.features-grid {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+margin-top: 2rem;
+}
+
+.feature-card {
+background: var(--surface);
+padding: 1.5rem;
+border-radius: var(--radius-sm);
+border: 1px solid var(--border-light);
+transition: all 0.2s;
+}
+
+.feature-card:active {
+background: #22262e;
+border-color: var(--accent);
+}
+
+.feature-card i {
+font-size: 1.8rem;
+color: var(--accent);
+margin-bottom: 0.8rem;
+}
+
+.feature-card h3 {
+font-size: 1.4rem;
+margin-bottom: 0.25rem;
+color: var(--text-primary);
+}
+
+.feature-card p {
+color: var(--text-secondary);
+font-size: 0.95rem;
+}
+
+/* workspace snippet */
+.workspace-note {
+background: var(--surface);
+border-radius: var(--radius);
+padding: 2rem 1.5rem;
+margin-top: 2rem;
+border: 1px solid var(--border-light);
+}
+
+.workspace-note h2 {
+font-size: 1.8rem;
+margin-bottom: 1rem;
+color: var(--text-primary);
+}
+
+.workspace-note h2 i {
+color: var(--accent);
+margin-right: 0.3rem;
+}
+
+.workspace-note p {
+color: var(--text-secondary);
+margin-bottom: 1.5rem;
+}
+
+.pill {
+display: inline-block;
+background: rgba(40, 167, 69, 0.15);
+color: var(--accent);
+padding: 0.3rem 1rem;
+border-radius: 40px;
+font-weight: 600;
+font-size: 0.9rem;
+border: 1px solid var(--accent);
+}
+
+/* footer */
+footer {
+padding: 2rem 1.5rem 3rem;
+border-top: 1px solid var(--border-light);
+text-align: center;
+}
+
+.footer-links {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 1.5rem;
+margin: 1.5rem 0;
+}
+
+.footer-links a {
+color: var(--text-secondary);
+text-decoration: none;
+font-weight: 500;
+font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+color: var(--accent);
+}
+
+.copyright {
+color: #5f6670;
+font-size: 0.8rem;
+}
+
+/* micro interactions */
+.tap-effect {
+transition: transform 0.1s;
+}
+
+.tap-effect:active {
+transform: scale(0.97);
+}
+
+/* responsive touch targets */
+button,
+a,
+.feature-card {
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+}
+
+/* AOS custom */
+[data-aos] {
+transition-duration: 0.6s !important;
+}
