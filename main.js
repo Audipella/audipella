@@ -21,6 +21,7 @@ const mobileNavBreakpoint = 768;
 const rootStyle = document.documentElement.style;
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = window.matchMedia('(pointer: fine)');
+const hoverCapable = window.matchMedia('(hover: hover)');
 
 // 2. ROUTING & PAGE TRANSITIONS
 function applyPageState(pageId) {
@@ -263,20 +264,78 @@ function setAmbientPosition(pX, pY, sX, sY) {
 
 let aTargetX = window.innerWidth * 0.5, aTargetY = window.innerHeight * 0.3;
 let aCurrX = aTargetX, aCurrY = aTargetY;
+let ambientAnimationFrame = null;
+let ambientTrackingEnabled = false;
+
+function setAmbientFallbackPosition() {
+    const primaryX = window.innerWidth * 0.52;
+    const primaryY = window.innerHeight * 0.28;
+    const secondaryX = window.innerWidth * 0.64;
+    const secondaryY = window.innerHeight * 0.18;
+    aTargetX = primaryX;
+    aTargetY = primaryY;
+    aCurrX = primaryX;
+    aCurrY = primaryY;
+    setAmbientPosition(primaryX, primaryY, secondaryX, secondaryY);
+}
+
+function resetAmbientTarget() {
+    aTargetX = window.innerWidth * 0.5;
+    aTargetY = window.innerHeight * 0.3;
+}
+
+function handleAmbientPointerMove(e) {
+    aTargetX = e.clientX;
+    aTargetY = e.clientY;
+}
+
+function shouldAnimateAmbient() {
+    return !prefersReducedMotion.matches
+        && hoverCapable.matches
+        && finePointer.matches
+        && window.innerWidth > mobileNavBreakpoint;
+}
 
 function animateAmbient() {
+    if (!ambientTrackingEnabled) {
+        ambientAnimationFrame = null;
+        return;
+    }
     aCurrX += (aTargetX - aCurrX) * 0.12;
     aCurrY += (aTargetY - aCurrY) * 0.12;
     setAmbientPosition(aCurrX, aCurrY, aCurrX + (window.innerWidth * 0.12), aCurrY - (window.innerHeight * 0.08));
-    window.requestAnimationFrame(animateAmbient);
+    ambientAnimationFrame = window.requestAnimationFrame(animateAmbient);
 }
 
-if (!prefersReducedMotion.matches && finePointer.matches) {
-    window.addEventListener('pointermove', (e) => { aTargetX = e.clientX; aTargetY = e.clientY; });
-    window.addEventListener('mouseleave', () => { aTargetX = window.innerWidth * 0.5; aTargetY = window.innerHeight * 0.3; });
-    window.requestAnimationFrame(animateAmbient);
-} else {
-    setAmbientPosition(window.innerWidth * 0.52, window.innerHeight * 0.28, window.innerWidth * 0.64, window.innerHeight * 0.18);
+function syncAmbientAnimation() {
+    const shouldAnimate = shouldAnimateAmbient();
+
+    if (shouldAnimate === ambientTrackingEnabled) {
+        if (!shouldAnimate) setAmbientFallbackPosition();
+        return;
+    }
+
+    ambientTrackingEnabled = shouldAnimate;
+
+    if (ambientTrackingEnabled) {
+        resetAmbientTarget();
+        aCurrX = aTargetX;
+        aCurrY = aTargetY;
+        window.addEventListener('pointermove', handleAmbientPointerMove);
+        window.addEventListener('mouseleave', resetAmbientTarget);
+        if (ambientAnimationFrame === null) {
+            ambientAnimationFrame = window.requestAnimationFrame(animateAmbient);
+        }
+        return;
+    }
+
+    window.removeEventListener('pointermove', handleAmbientPointerMove);
+    window.removeEventListener('mouseleave', resetAmbientTarget);
+    if (ambientAnimationFrame !== null) {
+        window.cancelAnimationFrame(ambientAnimationFrame);
+        ambientAnimationFrame = null;
+    }
+    setAmbientFallbackPosition();
 }
 
 // 8. FAQ ACCORDION
@@ -330,7 +389,12 @@ if (card && container) {
 // 10. INITIALIZATION
 
 syncWaveAnimation();
+syncAmbientAnimation();
 updateNavScrollState();
 setMobileMenuState(false);
 showPage('home', { animate: false });
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncWaveAnimation);
+if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncAmbientAnimation);
+if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
+if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
+window.addEventListener('resize', syncAmbientAnimation);
