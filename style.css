@@ -1611,46 +1611,7 @@ footer {
     }
 }
 
-/* Reduced motion accessibility */
-@media (prefers-reduced-motion: reduce) {
-    .ambient-background {
-        animation: none;
-    }
 
-    .phone-live-badge {
-        animation: none;
-    }
-
-    .equalizer,
-    .mini-panel,
-    #downloadBtn {
-        animation: none;
-    }
-
-    .faq-item,
-    .faq-question span,
-    .faq-answer {
-        transition: none;
-    }
-
-    #wave-container .bar {
-        opacity: 1;
-    }
-
-    .marquee-track {
-        overflow-x: auto;
-    }
-
-    .marquee-track::before,
-    .marquee-track::after {
-        display: none;
-    }
-
-    .marquee-content {
-        animation: none;
-        padding-right: 24px;
-    }
-}
 
 .hidden {
     display: none;
