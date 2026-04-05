@@ -256,7 +256,7 @@ function animateWaveBar(bar, duration, multiplier, phaseOffset) {
 
 function syncWaveAnimation() {
     waveAnimations.forEach(a => a.stop());
-    if (prefersReducedMotion.matches || !waveBars.length) {
+    if (!waveBars.length) {
         waveBars.forEach((bar, i) => {
             bar.style.height = `${waveMinHeight + ((waveBaseHeight * waveMultipliers[i]) - waveMinHeight) * 0.45}px`;
             bar.style.opacity = '0.85';
@@ -302,8 +302,7 @@ function handleAmbientPointerMove(e) {
 }
 
 function shouldAnimateAmbient() {
-    return !prefersReducedMotion.matches
-        && hoverCapable.matches
+    return hoverCapable.matches
         && finePointer.matches
         && window.innerWidth > mobileNavBreakpoint;
 }
@@ -315,10 +314,7 @@ let autoPanStart = null;
 // AFTER
 function startAmbientAutoPan() {
     if (autoPanFrame !== null) return; // already running, leave it alone
-    if (prefersReducedMotion.matches) {
-        setAmbientFallbackPosition(); // only freeze when motion is actually reduced
-        return;
-    }
+   
     function step(ts) {
         if (autoPanStart === null) autoPanStart = ts;
         const elapsed = ts - autoPanStart;
@@ -408,7 +404,7 @@ document.querySelectorAll('.faq-item').forEach(item => {
 
         if (!isOpen) {
             item.classList.add('open');
-            if (answer) answer.style.maxHeight = prefersReducedMotion.matches ? 'none' : `${answer.scrollHeight}px`;
+            if (answer) answer.style.maxHeight = `${answer.scrollHeight}px`;
             if (icon) icon.textContent = '−';
         }
     });
@@ -442,12 +438,7 @@ syncAmbientAnimation();
 updateNavScrollState();
 setMobileMenuState(false);
 showPage('home', { animate: false });
-if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncWaveAnimation);
-// AFTER
-if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', () => {
-    stopAmbientAutoPan();
-    syncAmbientAnimation();
-});
+
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
 if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
 window.addEventListener('resize', syncAmbientAnimation);
