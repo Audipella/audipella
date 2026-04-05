@@ -388,7 +388,11 @@ if (card && container) {
 
 // 10. INITIALIZATION
 
-
+syncWaveAnimation();
+syncAmbientAnimation();
+updateNavScrollState();
+setMobileMenuState(false);
+showPage('home', { animate: false });
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncWaveAnimation);
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncAmbientAnimation);
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
