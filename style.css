@@ -1281,7 +1281,7 @@ footer {
 
     .phone-frame {
         position: relative;
-        width: min(var(--phone-width, 310px), 65vw) !important;
+        width: min(var(--phone-width, 310px), 63vw) !important;
         max-width: 80vw;
         height: auto;
         padding: 10px;
