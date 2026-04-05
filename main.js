@@ -244,7 +244,10 @@ function animateWaveBar(bar, duration, multiplier, phaseOffset) {
 
 function syncWaveAnimation() {
     waveAnimations.forEach(a => a.stop());
-    if (prefersReducedMotion.matches || !waveBars.length) {
+    
+    const isMobile = window.innerWidth <= mobileNavBreakpoint;
+    
+    if (prefersReducedMotion.matches || !waveBars.length || isMobile) {
         waveBars.forEach((bar, i) => {
             bar.style.height = `${waveMinHeight + ((waveBaseHeight * waveMultipliers[i]) - waveMinHeight) * 0.45}px`;
             bar.style.opacity = '0.85';
