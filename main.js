@@ -312,9 +312,11 @@ function shouldAnimateAmbient() {
 let autoPanFrame = null;
 let autoPanStart = null;
 
+// AFTER
 function startAmbientAutoPan() {
-    if (autoPanFrame !== null || prefersReducedMotion.matches) {
-        setAmbientFallbackPosition();
+    if (autoPanFrame !== null) return; // already running, leave it alone
+    if (prefersReducedMotion.matches) {
+        setAmbientFallbackPosition(); // only freeze when motion is actually reduced
         return;
     }
     function step(ts) {
