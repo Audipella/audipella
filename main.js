@@ -163,9 +163,6 @@ if (menuToggle && navLinksShell && navLinksShellFrame) {
         setMobileMenuState(false);
     });
     
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) syncWaveAnimation();
-});
     
     window.addEventListener('resize', () => {
         if (window.innerWidth > mobileNavBreakpoint) {
@@ -173,6 +170,11 @@ document.addEventListener('visibilitychange', () => {
         }
     });
 }
+
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncWaveAnimation();
+});
 
 // 5. STORE LINKS
 const STORE_URLS = {
