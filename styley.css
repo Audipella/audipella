@@ -214,18 +214,6 @@ body {
     background: radial-gradient(circle, rgba(42, 178, 255, 0.16) 0%, rgba(40, 167, 69, 0.12) 40%, transparent 72%);
 }
 
-@media (max-width: 768px), (hover: none), (pointer: coarse) {
-    .ambient-background {
-        animation: none;
-        will-change: auto;
-        background-position: 14% 16%, 86% 12%, 50% 50%;
-    }
-
-    .ambient-orb {
-        will-change: auto;
-    }
-}
-
 nav,
 main,
 footer {
