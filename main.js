@@ -244,10 +244,7 @@ function animateWaveBar(bar, duration, multiplier, phaseOffset) {
 
 function syncWaveAnimation() {
     waveAnimations.forEach(a => a.stop());
-    
-    const isMobile = window.innerWidth <= mobileNavBreakpoint;
-    
-    if (prefersReducedMotion.matches || !waveBars.length || isMobile) {
+    if (prefersReducedMotion.matches || !waveBars.length) {
         waveBars.forEach((bar, i) => {
             bar.style.height = `${waveMinHeight + ((waveBaseHeight * waveMultipliers[i]) - waveMinHeight) * 0.45}px`;
             bar.style.opacity = '0.85';
@@ -391,11 +388,7 @@ if (card && container) {
 
 // 10. INITIALIZATION
 
-syncWaveAnimation();
-syncAmbientAnimation();
-updateNavScrollState();
-setMobileMenuState(false);
-showPage('home', { animate: false });
+
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncWaveAnimation);
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncAmbientAnimation);
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
