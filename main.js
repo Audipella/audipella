@@ -203,7 +203,7 @@ const waveBaseHeight = 35;
 let waveAnimations = [];
 
 if (backgroundAudio) {
-    const backgroundVolume = 0.02;
+    const backgroundVolume = 0.008;
     let audioStarted = false;
     const unlockAudioEvents = ['pointerdown', 'touchstart', 'keydown'];
 
