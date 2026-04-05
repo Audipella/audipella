@@ -30,6 +30,9 @@
             scroll-behavior: smooth;
         }
 
+        .hidden {
+            display: none;
+        }
 
         .ambient-background {
             position: fixed;
@@ -157,7 +160,13 @@
             gap: 16px;
         }
 
-        .nav-links-shell {
+        .nav-links-shell-frame {
+            display: contents;
+        }
+
+        .nav-links-shell,
+        .nav-links-shell.show,
+        .nav-links-shell.hidden {
             display: contents;
         }
 
@@ -1171,7 +1180,9 @@
                 transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
             }
 
-            .nav-links-shell-frame>.nav-links-shell {
+            .nav-links-shell-frame>.nav-links-shell,
+            .nav-links-shell-frame>.nav-links-shell.show,
+            .nav-links-shell-frame>.nav-links-shell.hidden {
                 display: block;
                 position: static;
                 z-index: auto;
@@ -1188,6 +1199,10 @@
                 box-shadow: none;
                 transform: none;
                 transition: max-height 0.34s ease;
+            }
+
+            .nav-links-shell-frame>.nav-links-shell.hidden {
+                max-height: 0;
             }
 
             .nav-links-shell-frame>.nav-links-shell.show {
@@ -1442,7 +1457,7 @@
     </div>
 
     <audio id="backgroundAudio" preload="auto" loop playsinline hidden>
-        <source src="/Audipella_Official.mp3" type="audio/mpeg" />
+        <source src="assets/Audipella_Official.mp3" type="audio/mpeg" />
     </audio>
 
     <nav>
@@ -1453,7 +1468,7 @@
                 </span>
                 <span class="brand-name">Audipella</span>
             </a>
-            <button type="button" class="mobile-menu-btn" id="menuToggle" aria-label="Open menu">
+            <button type="button" class="mobile-menu-btn" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinksShell">
                 <span class="menu-icon" aria-hidden="true">
                     <span></span>
                     <span></span>
@@ -1461,10 +1476,12 @@
                 </span>
             </button>
 
-            <div class="nav-links-shell show" id="navLinksShell">
-                <div class="nav-links" id="navLinks">
-                    <a href="#" data-page="features">Features</a>
-                    <a href="#" data-page="workflow">Workflow</a>
+            <div class="nav-links-shell-frame">
+                <div class="nav-links-shell hidden" id="navLinksShell" aria-hidden="true">
+                    <div class="nav-links" id="navLinks">
+                        <a href="#" data-page="features">Features</a>
+                        <a href="#" data-page="workflow">Workflow</a>
+                    </div>
                 </div>
             </div>
 
@@ -2188,36 +2205,6 @@
         updateNavScrollState();
         window.addEventListener('scroll', updateNavScrollState, { passive: true });
 
-        // mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const navLinks = document.getElementById('navLinks');
-        const navLinksShell = document.getElementById('navLinksShell');
-        if (menuToggle) {
-            menuToggle.setAttribute('aria-expanded', 'false');
-            menuToggle.addEventListener('click', () => {
-                navLinksShell?.classList.toggle('show');
-                const isOpen = navLinksShell?.classList.contains('show') ?? false;
-                menuToggle.classList.toggle('active', isOpen);
-                menuToggle.setAttribute('aria-expanded', String(isOpen));
-                menuToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-                nav?.classList.toggle('menu-open', isOpen);
-            });
-        }
-
-        if (navLinks) {
-            navLinks.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth <= 768) {
-                        navLinksShell?.classList.remove('show');
-                        menuToggle?.classList.remove('active');
-                        menuToggle?.setAttribute('aria-expanded', 'false');
-                        menuToggle?.setAttribute('aria-label', 'Open menu');
-                        nav?.classList.remove('menu-open');
-                    }
-                });
-            });
-        }
-
         // FAQ accordion
         const faqItems = document.querySelectorAll('.faq-item');
 
@@ -2343,6 +2330,63 @@
             resetCard();
         });
 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
+            const navLinksShell = document.getElementById('navLinksShell');
+            const navElement = document.querySelector('nav');
+            const mobileNavBreakpoint = 768;
+
+            if (!menuToggle || !navLinksShell || !navElement) return;
+
+            function openMobileMenu() {
+                menuToggle.classList.add('active');
+                navElement.classList.add('menu-open');
+                navLinksShell.classList.replace('hidden', 'show');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                menuToggle.setAttribute('aria-label', 'Close menu');
+                navLinksShell.setAttribute('aria-hidden', 'false');
+            }
+
+            function closeMobileMenu() {
+                menuToggle.classList.remove('active');
+                navElement.classList.remove('menu-open');
+                navLinksShell.classList.replace('show', 'hidden');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.setAttribute('aria-label', 'Open menu');
+                navLinksShell.setAttribute('aria-hidden', window.innerWidth <= mobileNavBreakpoint ? 'true' : 'false');
+            }
+
+            closeMobileMenu();
+
+            menuToggle.addEventListener('click', () => {
+                if (navLinksShell.classList.contains('show')) {
+                    closeMobileMenu();
+                } else {
+                    openMobileMenu();
+                }
+            });
+
+            navLinks?.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= mobileNavBreakpoint) {
+                        closeMobileMenu();
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > mobileNavBreakpoint) {
+                    closeMobileMenu();
+                    return;
+                }
+
+                if (!navLinksShell.classList.contains('show')) {
+                    navLinksShell.setAttribute('aria-hidden', 'true');
+                }
+            });
+        });
     </script>
 </body>
 
