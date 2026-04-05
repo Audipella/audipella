@@ -162,7 +162,11 @@ if (menuToggle && navLinksShell && navLinksShellFrame) {
         if (!navLinksShell.classList.contains('show')) return;
         setMobileMenuState(false);
     });
-
+    
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncWaveAnimation();
+});
+    
     window.addEventListener('resize', () => {
         if (window.innerWidth > mobileNavBreakpoint) {
             setMobileMenuState(false);
@@ -224,10 +228,16 @@ if (backgroundAudio) {
 
 function easeInOutSin(t) { return (1 - Math.cos(Math.PI * t)) / 2; }
 
+// AFTER
 function animateWaveBar(bar, duration, multiplier, phaseOffset) {
     let start = null, cancelled = false;
     function step(timestamp) {
         if (cancelled) return;
+        if (document.hidden) {
+            // pause loop while tab/app is backgrounded, resume on next visible frame
+            window.requestAnimationFrame(step);
+            return;
+        }
         if (start === null) start = timestamp - phaseOffset;
         const elapsed = timestamp - start;
         const cycleDuration = duration * 2 + 50;
@@ -296,6 +306,36 @@ function shouldAnimateAmbient() {
         && window.innerWidth > mobileNavBreakpoint;
 }
 
+// NEW: gentle auto-pan for touch/iOS devices
+let autoPanFrame = null;
+let autoPanStart = null;
+
+function startAmbientAutoPan() {
+    if (autoPanFrame !== null || prefersReducedMotion.matches) {
+        setAmbientFallbackPosition();
+        return;
+    }
+    function step(ts) {
+        if (autoPanStart === null) autoPanStart = ts;
+        const elapsed = ts - autoPanStart;
+        const pX = window.innerWidth  * (0.38 + 0.24 * Math.sin(elapsed / 7000));
+        const pY = window.innerHeight * (0.22 + 0.18 * Math.sin(elapsed / 9000 + 1));
+        const sX = window.innerWidth  * (0.62 + 0.16 * Math.sin(elapsed / 6000 + 2));
+        const sY = window.innerHeight * (0.14 + 0.12 * Math.sin(elapsed / 8000 + 3));
+        setAmbientPosition(pX, pY, sX, sY);
+        autoPanFrame = window.requestAnimationFrame(step);
+    }
+    autoPanFrame = window.requestAnimationFrame(step);
+}
+
+function stopAmbientAutoPan() {
+    if (autoPanFrame !== null) {
+        window.cancelAnimationFrame(autoPanFrame);
+        autoPanFrame = null;
+        autoPanStart = null;
+    }
+}
+
 function animateAmbient() {
     if (!ambientTrackingEnabled) {
         ambientAnimationFrame = null;
@@ -307,17 +347,22 @@ function animateAmbient() {
     ambientAnimationFrame = window.requestAnimationFrame(animateAmbient);
 }
 
+// AFTER
 function syncAmbientAnimation() {
     const shouldAnimate = shouldAnimateAmbient();
 
     if (shouldAnimate === ambientTrackingEnabled) {
-        if (!shouldAnimate) setAmbientFallbackPosition();
+        if (!shouldAnimate) {
+            stopAmbientAutoPan();
+            startAmbientAutoPan(); // slow auto-pan instead of frozen
+        }
         return;
     }
 
     ambientTrackingEnabled = shouldAnimate;
 
     if (ambientTrackingEnabled) {
+        stopAmbientAutoPan();
         resetAmbientTarget();
         aCurrX = aTargetX;
         aCurrY = aTargetY;
@@ -335,7 +380,8 @@ function syncAmbientAnimation() {
         window.cancelAnimationFrame(ambientAnimationFrame);
         ambientAnimationFrame = null;
     }
-    setAmbientFallbackPosition();
+    stopAmbientAutoPan();
+    startAmbientAutoPan(); // gentle motion for touch/iOS
 }
 
 // 8. FAQ ACCORDION
@@ -394,7 +440,11 @@ updateNavScrollState();
 setMobileMenuState(false);
 showPage('home', { animate: false });
 if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncWaveAnimation);
-if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', syncAmbientAnimation);
+// AFTER
+if (prefersReducedMotion.addEventListener) prefersReducedMotion.addEventListener('change', () => {
+    stopAmbientAutoPan();
+    syncAmbientAnimation();
+});
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
 if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
 window.addEventListener('resize', syncAmbientAnimation);
