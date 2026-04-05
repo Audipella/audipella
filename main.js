@@ -355,7 +355,6 @@ function syncAmbientAnimation() {
 
     if (shouldAnimate === ambientTrackingEnabled) {
         if (!shouldAnimate) {
-            stopAmbientAutoPan();
             startAmbientAutoPan(); // slow auto-pan instead of frozen
         }
         return;
