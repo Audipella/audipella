@@ -25,6 +25,8 @@ const hoverCapable = window.matchMedia('(hover: hover)');
 
 // 2. ROUTING & PAGE TRANSITIONS
 function applyPageState(pageId) {
+    window.location.hash = pageId === 'home' ? '' : pageId;
+
     Object.keys(pages).forEach(id => {
         if (pages[id]) pages[id].style.display = 'none';
     });
@@ -437,7 +439,8 @@ syncWaveAnimation();
 syncAmbientAnimation();
 updateNavScrollState();
 setMobileMenuState(false);
-showPage('home', { animate: false });
+const hashPage = window.location.hash.replace('#', '');
+showPage(hashPage && pages[hashPage] ? hashPage : 'home', { animate: false });
 
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
 if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
