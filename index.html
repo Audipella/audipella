@@ -396,7 +396,12 @@
         </div>
     </footer>
    <!-- <script src="debug.js"></script> -->
-    <script src="main.js?v=0009800"></script>
+<script>
+    var script = document.createElement('script');
+    // Use .src for scripts (link uses .href)
+    script.src = 'main.js?v=' + new Date().getTime();
+    document.head.appendChild(script);
+</script>
 </body>
 
 
