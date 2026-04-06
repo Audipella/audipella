@@ -445,3 +445,18 @@ showPage(hashPage && pages[hashPage] ? hashPage : 'home', { animate: false });
 if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
 if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
 window.addEventListener('resize', syncAmbientAnimation);
+// A. Handle initial load (e.g., if someone visits site.com/#privacy)
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && pages[hash]) {
+        showPage(hash);
+    }
+});
+
+// B. Handle hash changes while the page is already open
+window.onhashchange = () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && pages[hash]) {
+        showPage(hash);
+    }
+};
