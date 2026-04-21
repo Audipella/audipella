@@ -1,0 +1,28 @@
+{
+  "id": "/audipella/",
+  "name": "Audipella",
+  "short_name": "Audipella",
+  "description": "Favorite Music Player & Mobile Multitrack Studio",
+  "start_url": "/audipella/",
+  "scope": "/audipella/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111218",
+  "theme_color": "#28a745",
+  "lang": "en",
+  "categories": ["music", "audio", "multimedia", "productivity"],
+  "icons": [
+    {
+      "src": "/audipella/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/audipella/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
