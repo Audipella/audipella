@@ -3,12 +3,13 @@ const pages = {
     home: document.getElementById('home-page'),
     features: document.getElementById('features-page'),
     workflow: document.getElementById('workflow-page'),
+    'detailed-features': document.getElementById('detailed-features-page'),
     support: document.getElementById('support-page'),
     privacy: document.getElementById('privacy-page')
 };
 
 const appRoot = document.getElementById('app-root');
-const pageOrder = ['home', 'features', 'workflow', 'support', 'privacy'];
+const pageOrder = ['home', 'features', 'workflow', 'detailed-features', 'support', 'privacy'];
 let currentPageId = 'home';
 let pageTransitionAnimation = null;
 
@@ -164,8 +165,8 @@ if (menuToggle && navLinksShell && navLinksShellFrame) {
         if (!navLinksShell.classList.contains('show')) return;
         setMobileMenuState(false);
     });
-    
-    
+
+
     window.addEventListener('resize', () => {
         if (window.innerWidth > mobileNavBreakpoint) {
             setMobileMenuState(false);
@@ -177,6 +178,62 @@ if (menuToggle && navLinksShell && navLinksShellFrame) {
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) syncWaveAnimation();
 });
+
+// Mode Tabs for Workflow Page and Detailed Features Page
+function initModeTabs() {
+    // Handle workflow page tabs
+    const workflowTabs = document.querySelector('#workflow-page .mode-tab');
+    const playerSteps = document.querySelector('.mode-steps-player');
+    const studioSteps = document.querySelector('.mode-steps-studio');
+
+    if (workflowTabs && playerSteps && studioSteps) {
+        const workflowPageTabs = document.querySelectorAll('#workflow-page .mode-tab');
+        workflowPageTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const mode = tab.dataset.mode;
+
+                // Update tab states within this page only
+                workflowPageTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Show/hide appropriate steps
+                if (mode === 'player') {
+                    playerSteps.style.display = 'flex';
+                    studioSteps.style.display = 'none';
+                } else {
+                    playerSteps.style.display = 'none';
+                    studioSteps.style.display = 'flex';
+                }
+            });
+        });
+    }
+
+    // Handle detailed features page tabs
+    const detailedFeaturesTabs = document.querySelector('#detailed-features-page .mode-tab');
+    const featureContents = document.querySelectorAll('.feature-mode-content');
+
+    if (detailedFeaturesTabs && featureContents.length) {
+        const detailsPageTabs = document.querySelectorAll('#detailed-features-page .mode-tab');
+        detailsPageTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const mode = tab.dataset.mode;
+
+                // Update tab states within this page only
+                detailsPageTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Show/hide appropriate feature sections
+                featureContents.forEach(content => {
+                    const contentMode = content.dataset.content;
+                    content.style.display = contentMode === mode ? 'block' : 'none';
+                });
+            });
+        });
+    }
+}
+
+// Initialize mode tabs on load
+initModeTabs();
 
 // 5. STORE LINKS
 const STORE_URLS = {
@@ -316,13 +373,13 @@ let autoPanStart = null;
 // AFTER
 function startAmbientAutoPan() {
     if (autoPanFrame !== null) return; // already running, leave it alone
-   
+
     function step(ts) {
         if (autoPanStart === null) autoPanStart = ts;
         const elapsed = ts - autoPanStart;
-        const pX = window.innerWidth  * (0.38 + 0.24 * Math.sin(elapsed / 7000));
+        const pX = window.innerWidth * (0.38 + 0.24 * Math.sin(elapsed / 7000));
         const pY = window.innerHeight * (0.22 + 0.18 * Math.sin(elapsed / 9000 + 1));
-        const sX = window.innerWidth  * (0.62 + 0.16 * Math.sin(elapsed / 6000 + 2));
+        const sX = window.innerWidth * (0.62 + 0.16 * Math.sin(elapsed / 6000 + 2));
         const sY = window.innerHeight * (0.14 + 0.12 * Math.sin(elapsed / 8000 + 3));
         setAmbientPosition(pX, pY, sX, sY);
         autoPanFrame = window.requestAnimationFrame(step);

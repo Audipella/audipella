@@ -5,16 +5,18 @@
     <meta charset="UTF-8">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#28a745" media="(prefers-color-scheme: dark)">
-     <meta name="theme-color" content="#28a745" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#28a745" media="(prefers-color-scheme: light)">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Audipella – Mobile Multitrack Audio Studio</title>
+    <title>Audipella – Music Player & Mobile Multitrack Studio</title>
     <script>
-     var link = document.createElement('link');
-     link.rel = 'stylesheet';
-     link.href = 'style.css?v=' + new Date().getTime();
-     document.head.appendChild(link);
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'style.css?v=' + new Date().getTime();
+        document.head.appendChild(link);
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,800;14..32,900&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,800;14..32,900&display=swap"
+        rel="stylesheet" />
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 </head>
@@ -50,6 +52,7 @@
                 <div class="nav-links-shell" id="navLinksShell">
                     <div class="nav-links" id="navLinks">
                         <a href="#" data-page="features">Features</a>
+                        <a href="#" data-page="detailed-features">All Features</a>
                         <a href="#" data-page="workflow">Workflow</a>
                     </div>
                 </div>
@@ -76,8 +79,8 @@
                                 </div>
                             </div>
                             <div class="mini-panel parallax-layer floating" data-depth="1.3">
-                                <p>Session view</p>
-                                <strong>Import, arrange, mix, save, export</strong>
+                                <p>Dual Mode</p>
+                                <strong>Player + Studio in one app</strong>
                             </div>
                             <img class="workspace-img" src="https://raiidr.com/udipella/newWorkspace.png"
                                 alt="Audipella Workspace" />
@@ -88,11 +91,11 @@
                     <div class="hero-copy">
 
 
-                        <h1>YOUR STUDIO <br>ANYWHERE</h1>
+                        <h1>PLAY OR CREATE<br>ANYWHERE</h1>
 
-                        <p class="tagline">Pocket DAW with instant flow <br>Audipella is a mobile multitrack studio —
-                            record, align, mix, and export
-                            anywhere. Timeline‑centric, zero latency creativity.</p>
+                        <p class="tagline">One seamless experience <br>Audipella is both a beautiful music
+                            player for your library <em>and</em> a pocket DAW for recording, layering, and mixing.
+                            Listen now, create later — zero friction.</p>
 
                         <div id="downloadBtn">
                             <a id="downloadStoreLink" class="btn-primary download-store-btn"
@@ -122,6 +125,10 @@
             <div class="marquee-track" aria-label="Audipella feature highlights">
                 <div class="marquee-content">
                     <div class="marquee-group">
+                        <span class="marquee-item">Music player with library browse</span>
+                        <span class="marquee-item">Albums, artists, playlists</span>
+                        <span class="marquee-item">Smart playlists: Recent, Favorites</span>
+                        <span class="marquee-item">Now playing with full controls</span>
                         <span class="marquee-item">Demo project or blank start</span>
                         <span class="marquee-item">Guide track from audio or video</span>
                         <span class="marquee-item">Timeline markers</span>
@@ -132,6 +139,10 @@
                         <span class="marquee-item">Project library and mixes</span>
                     </div>
                     <div class="marquee-group" aria-hidden="true">
+                        <span class="marquee-item">Music player with library browse</span>
+                        <span class="marquee-item">Albums, artists, playlists</span>
+                        <span class="marquee-item">Smart playlists: Recent, Favorites</span>
+                        <span class="marquee-item">Now playing with full controls</span>
                         <span class="marquee-item">Demo project or blank start</span>
                         <span class="marquee-item">Guide track from audio or video</span>
                         <span class="marquee-item">Timeline markers</span>
@@ -145,34 +156,33 @@
             </div>
             <section class="section-one">
                 <div class="container">
-                    <h2 name="section1" class="section-title">Audipella is built for you</h2>
+                    <h2 name="section1" class="section-title">Two ways to experience Audipella</h2>
                     <div class="grid-3">
-                        <div class="card">
+                        <div class="card mode-card player-card">
+                            <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 8v8l6-4-6-4z" fill="currentColor" />
+                                </svg></div>
+                            <h3>Player Mode</h3>
+                            <p>Open your local music library and listen immediately. Browse by songs, albums, artists,
+                                or playlists. Smart playlists for Recent, Favorites, and Downloads.</p>
+                        </div>
+                        <div class="card mode-card studio-card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M3 9l9-6 9 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
                                     <polyline points="9 22 9 12 15 12 15 22" />
                                 </svg></div>
-                            <h3>Multitrack recording</h3>
+                            <h3>Studio Mode</h3>
                             <p>Record layered takes while monitoring existing audio. Align takes by press‑and‑drag on
-                                the timeline.</p>
+                                the timeline. Full multitrack DAW with effects.</p>
                         </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <rect x="2" y="6" width="20" height="12" rx="2" />
-                                    <path d="M8 12h8" />
+                                    <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                 </svg></div>
-                            <h3>Full control workspace</h3>
-                            <p>Drag, nudge, reorder, rename, duplicate, lock tracks. Add markers & loop regions — full
-                                control.</p>
-                        </div>
-                        <div class="card">
-                            <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                        d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                                </svg></div>
-                            <h3>Pro audio processing</h3>
-                            <p>Volume, EQ, speed, pitch, reverse, “Pro Vocal” noise reduction. Per‑track & master
-                                effects.</p>
+                            <h3>Seamless Switching</h3>
+                            <p>Jump between Player and Studio anytime. Import tracks from your library directly into a
+                                studio session. One app, two workflows.</p>
                         </div>
                     </div>
                 </div>
@@ -183,31 +193,58 @@
         <div id="features-page" class="page-hidden">
             <section>
                 <div class="container">
-                    <h2 class="section-title">Everything you need to produce</h2>
+                    <h2 class="section-title">Everything you need to play & produce</h2>
                     <div class="grid-3">
+                        <div class="card">
+                            <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M9 18V5l12-2v13" />
+                                    <circle cx="6" cy="18" r="3" />
+                                    <circle cx="18" cy="16" r="3" />
+                                </svg></div>
+                            <h3>Music library player</h3>
+                            <p>Browse your entire local library by songs, albums, artists, or playlists. Beautiful
+                                now-playing view with full playback controls.</p>
+                        </div>
+                        <div class="card">
+                            <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <path
+                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg></div>
+                            <h3>Smart playlists</h3>
+                            <p>Automatic playlists for Recent plays, Favorites, Downloads, and All Playable tracks. Your
+                                music, organized intelligently.</p>
+                        </div>
+                        <div class="card">
+                            <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg></div>
+                            <h3>Import to library</h3>
+                            <p>Add audio files directly to your player library. Import from files, downloads, or extract
+                                audio from video.</p>
+                        </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M19 11H5M5 5h14v14H5z" />
                                     <circle cx="12" cy="12" r="3" />
                                 </svg></div>
-                            <h3>Import any audio</h3>
-                            <p>Import from library, device, or extract audio from video before trimming. Perfect for
-                                sampling.</p>
+                            <h3>Studio import</h3>
+                            <p>Import from player library, device files, or extract audio from video before trimming.
+                                Perfect for sampling and remixing.</p>
                         </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M4 4v16h16V4H4z M8 9h8M8 15h5" />
                                 </svg></div>
-                            <h3>Workspace architecture</h3>
-                            <p>Undo/redo, project metadata, timeline editor, state management – everything stays
-                                modular.</p>
+                            <h3>Studio workspace</h3>
+                            <p>Undo/redo, project metadata, timeline editor, state management – everything stays modular
+                                and professional.</p>
                         </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path
                                         d="M12 2v4M12 22v-4M4 12H2M6 12H4M20 12h-2M22 12h-2M19.07 4.93l-2.83 2.83M7.76 16.24l-2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                                 </svg></div>
-                            <h3>Export & sharing</h3>
+                            <h3>Studio export</h3>
                             <p>Export finished mix, video reel with cover art. Save/load projects, mixes library,
                                 import/export .adp bundles.</p>
                         </div>
@@ -216,24 +253,26 @@
                                     <path
                                         d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9h-4m-7 9A9 9 0 0 1 3 12m9 9v-4M3 12a9 9 0 0 1 9-9m-9 9h4m7-9a9 9 0 0 1 9 9" />
                                 </svg></div>
-                            <h3>Loop & markers</h3>
-                            <p>Loop playback, A/B loop regions, markers for arrangement — compose like a pro.</p>
+                            <h3>Studio composition</h3>
+                            <p>Loop playback, A/B loop regions, markers for arrangement — compose like a pro in the
+                                multitrack workspace.</p>
                         </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path
                                         d="M12 8v4l3 3M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
                                 </svg></div>
-                            <h3>Offline-first</h3>
-                            <p>No backend required. All processing lives on your phone — works entirely offline.</p>
+                            <h3>100% offline</h3>
+                            <p>No backend required. Both player and studio work entirely on your device — no internet
+                                needed ever.</p>
                         </div>
                         <div class="card">
                             <div class="icon-box"><svg viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                                     <path d="M14 2v6h6" />
                                 </svg></div>
-                            <h3>Project bundles (.adp)</h3>
-                            <p>Self-contained projects: audio files, waveform assets, metadata — share and reopen
+                            <h3>Studio projects (.adp)</h3>
+                            <p>Self-contained studio projects: audio files, waveform assets, metadata — share and reopen
                                 seamlessly.</p>
                         </div>
                     </div>
@@ -245,19 +284,48 @@
         <div id="workflow-page" class="page-hidden">
             <section>
                 <div class="container">
-                    <h2 class="section-title">From first launch to final export</h2>
-                    <div class="steps">
+                    <h2 class="section-title">Choose your workflow</h2>
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" data-mode="player">Player Mode</button>
+                        <button class="mode-tab" data-mode="studio">Studio Mode</button>
+                    </div>
+                    <div class="steps mode-steps-player">
                         <div class="step">
                             <div class="step-number">1</div>
-                            <h3>Onboarding + Demo</h3>
-                            <p>First‑launch onboarding and a bundled demo project shows you how to mix, reorder and
-                                export.
-                            </p>
+                            <h3>Choose Player Mode</h3>
+                            <p>Open Audipella in Player Mode for instant access to your music library. No setup, no
+                                tutorial — just press play.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <h3>Browse Your Library</h3>
+                            <p>Explore your songs, albums, artists, and playlists. Smart playlists automatically
+                                organize your Recent, Favorites, and Downloads.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <h3>Enjoy & Control</h3>
+                            <p>Full playback controls in the now-playing view. Queue tracks, shuffle, repeat —
+                                everything you expect from a premium music player.</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <h3>Import & Expand</h3>
+                            <p>Add new audio files to your library anytime. Import from files, downloads, or extract
+                                audio from video clips.</p>
+                        </div>
+                    </div>
+                    <div class="steps mode-steps-studio" style="display: none;">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <h3>Choose Studio Mode</h3>
+                            <p>Switch to Studio Mode for the full multitrack experience. Onboarding walks you through
+                                your first recording session.</p>
                         </div>
                         <div class="step">
                             <div class="step-number">2</div>
                             <h3>Record & Align</h3>
-                            <p>Press and hold to drag track, align them precisely in the timeline editor. Monitor/Listen
+                            <p>Press and hold to drag tracks, align them precisely in the timeline editor. Monitor
                                 existing tracks while recording new ones.</p>
                         </div>
                         <div class="step">
@@ -274,10 +342,203 @@
                         </div>
                     </div>
                     <div class="info-panel workflow-callout">
-                        <h3 class="workflow-callout-title">⚡ Entirely offline audio pipeline</h3>
-                        <p class="workflow-callout-copy">recording, playback, trimming, mixing, import, export, add markers,
-                            redo, undo,
-                            looping, and video‑to‑audio extraction — all done locally. No cloud, no latency.</p>
+                        <h3 class="workflow-callout-title">⚡ Entirely offline — both modes</h3>
+                        <p class="workflow-callout-copy">Player library browsing and studio recording, playback,
+                            trimming, mixing, import, export, add markers, redo, undo, looping, and video‑to‑audio
+                            extraction — all done locally. No cloud, no latency, no accounts.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- detailed features page -->
+        <div id="detailed-features-page" class="page-hidden">
+            <section class="detailed-features">
+                <div class="container">
+                    <h2 class="section-title">Complete Feature Set</h2>
+
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" data-mode="studio">Studio Mode</button>
+                        <button class="mode-tab" data-mode="player">Player Mode</button>
+                    </div>
+
+                    <!-- Studio Features -->
+                    <div class="feature-section studio-section feature-mode-content" data-content="studio">
+                        <div class="feature-section-header">
+                            <div class="icon-box studio-icon">
+                                <svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M3 9l9-6 9 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                            </div>
+                            <h3 class="feature-section-title">Studio Features</h3>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Multi-Track Workspace</h4>
+                            <ul class="feature-list">
+                                <li>Organize projects with a flexible multi-track timeline</li>
+                                <li>Drag left/right with Ghost View for visual track alignment</li>
+                                <li>Drag up/down to reorder tracks</li>
+                                <li>Press to select single or multiple tracks</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Smart Editing Tools</h4>
+                            <ul class="feature-list">
+                                <li>Lock tracks to prevent accidental movement</li>
+                                <li>Solo play individual tracks for focused editing</li>
+                                <li>Mark regions for quick navigation</li>
+                                <li>Loop playback for A/B regions or entire track</li>
+                                <li>Snap playhead to timeline start or track end</li>
+                                <li>Set window regions for timeline playback view</li>
+                                <li>Zoom in/out timeline view</li>
+                                <li>Set base track with enable/disable monitoring</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Record Over Your Mix</h4>
+                            <ul class="feature-list">
+                                <li>Import a base track and record vocals or instruments</li>
+                                <li>Listen to your project in real time while recording</li>
+                                <li>Perfect for layering harmonies, overdubs, and vocal arrangements</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Save Project Progress</h4>
+                            <ul class="feature-list">
+                                <li>Save project progress and resume editing later (.adp)</li>
+                                <li>Export projects as .adp (Audipella project format)</li>
+                                <li>Import .adp files from other Audipella users</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Per-Track & Master EQ Control</h4>
+                            <ul class="feature-list">
+                                <li>Apply equalization to individual tracks for precise sound shaping</li>
+                                <li>Adjust each track independently for a balanced mix</li>
+                                <li>Fine-tune final output with master mix EQ before exporting</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Pro-Grade Processing</h4>
+                            <ul class="feature-list">
+                                <li>Built-in noise reduction for clean recordings</li>
+                                <li>Loudness normalization for professionally balanced audio</li>
+                                <li>"Pro Vocal" feature for vocal-optimized noise reduction</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Advanced Export Options</h4>
+                            <ul class="feature-list">
+                                <li>Export final mix as high-quality MP3</li>
+                                <li>Attach cover artwork to generate MP4 video for social sharing</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Advanced Controls</h4>
+                            <ul class="feature-list">
+                                <li>Audio sync latency adjustment for recording</li>
+                                <li>Set workspace max timeline duration (1hr limit)</li>
+                                <li>Adjust track drag sensitivity</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Help & Guidance</h4>
+                            <ul class="feature-list">
+                                <li>In-app help guide and tips</li>
+                                <li>Tool use reference documentation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Player Features -->
+                    <div class="feature-section player-section feature-mode-content" data-content="player"
+                        style="display: none;">
+                        <div class="feature-section-header">
+                            <div class="icon-box player-icon">
+                                <svg viewBox="0 0 24 24" stroke="currentColor">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 8v8l6-4-6-4z" fill="currentColor" />
+                                </svg>
+                            </div>
+                            <h3 class="feature-section-title">Player Features</h3>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Chat & Download</h4>
+                            <ul class="feature-list">
+                                <li>Search and download audio from URLs</li>
+                                <li>Conversational search with download progress</li>
+                                <li>Visual progress bars with live updates</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Playback Experience</h4>
+                            <ul class="feature-list">
+                                <li>Drag down to collapse to bottom player with controls</li>
+                                <li>Drag up to expanded full-screen player view</li>
+                                <li>Set start/end points for looped playback sections</li>
+                                <li>Playback speed control: 0.5x to 2.0x variable speed</li>
+                                <li>Shuffle mode: Random or ordered playback</li>
+                                <li>Restores playback position on resume</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Loop Modes</h4>
+                            <ul class="feature-list">
+                                <li>Loop Off — Play once and stop</li>
+                                <li>Loop All — Repeat entire queue</li>
+                                <li>Loop Once — Repeat current track</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Audio Trimmer Integration</h4>
+                            <ul class="feature-list">
+                                <li>Visual audio editing interface</li>
+                                <li>Set start/end trim points precisely</li>
+                                <li>Save edited versions directly to library</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Media Library Browsing</h4>
+                            <ul class="feature-list">
+                                <li>5 Tab Categories: Songs, Albums, Artists, Playlists, Recent</li>
+                                <li>Smart Playlists: Recently Added, Downloads, Playable tracks, Favorites</li>
+                                <li>Real-time search across entire library</li>
+                                <li>Pull-to-refresh library scanning</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Library Management</h4>
+                            <ul class="feature-list">
+                                <li>Multi-select tracks/albums/artists/playlists for batch actions</li>
+                                <li>Import audio files into the player library</li>
+                                <li>Extract audio from video for library import</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-category">
+                            <h4 class="feature-category-title">Playback Controls</h4>
+                            <ul class="feature-list">
+                                <li>Play, pause, skip forward/backward</li>
+                                <li>Touch-to-seek with time display</li>
+                                <li>Full-screen now playing view</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -290,7 +551,16 @@
                     <h2 class="section-title">Help & Support</h2>
                     <div class="faq-list" id="faqContainer">
                         <div class="faq-item">
-                            <div class="faq-question">🎙️ How do I align recorded takes? <span>+</span></div>
+                            <div class="faq-question">� What's the difference between Player and Studio mode?
+                                <span>+</span>
+                            </div>
+                            <div class="faq-answer"><strong>Player Mode</strong> is for listening — browse your local
+                                music library by songs, albums, artists, and playlists with a beautiful now-playing
+                                interface. <strong>Studio Mode</strong> is for creating — a full multitrack DAW where
+                                you record, layer, mix, and export. You can switch between modes anytime.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-question">��️ How do I align recorded takes? <span>+</span></div>
                             <div class="faq-answer">In the timeline editor, press and hold any take, then drag it to the
                                 desired start point. The snap guide helps you align to beats or markers.</div>
                         </div>
@@ -319,7 +589,8 @@
                         </div>
                         <div class="faq-item">
                             <div class="faq-question">📱 Does Audipella need internet? <span>+</span></div>
-                            <div class="faq-answer">No backend or server — works completely offline after install.</div>
+                            <div class="faq-answer">No backend or server — both Player and Studio modes work completely
+                                offline after install. Your music and projects never leave your device.</div>
                         </div>
                     </div>
                     <div class="support-callout">
@@ -395,13 +666,13 @@
             </p>
         </div>
     </footer>
-   <!-- <script src="debug.js"></script> -->
-<script>
-    var script = document.createElement('script');
-    // Use .src for scripts (link uses .href)
-    script.src = 'main.js?v=' + new Date().getTime();
-    document.head.appendChild(script);
-</script>
+    <!-- <script src="debug.js"></script> -->
+    <script>
+        var script = document.createElement('script');
+        // Use .src for scripts (link uses .href)
+        script.src = 'main.js?v=' + new Date().getTime();
+        document.head.appendChild(script);
+    </script>
 </body>
 
 
