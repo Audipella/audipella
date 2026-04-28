@@ -95,6 +95,7 @@
                         <a href="#" data-page="features">Features</a>
                         <a href="#" data-page="detailed-features">All Features</a>
                         <a href="#" data-page="workflow">Workflow</a>
+                        <a href="#" data-page="yt-download">YT Download</a>
                     </div>
                 </div>
             </div>
@@ -387,6 +388,70 @@
                         <p class="workflow-callout-copy">Player library browsing and studio recording, playback,
                             trimming, mixing, import, export, add markers, redo, undo, looping, and video‑to‑audio
                             extraction — all done locally. No cloud, no latency, no accounts.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- YouTube download page -->
+        <div id="yt-download-page" class="page-hidden">
+            <section class="yt-download-section">
+                <div class="container yt-download-layout">
+                    <div class="yt-download-copy">
+                        <div class="yt-download-kicker">
+                            <i class="fab fa-youtube" aria-hidden="true"></i>
+                            <span>Audio download</span>
+                        </div>
+                        <h2 class="section-title yt-download-title">YouTube to Audipella audio</h2>
+                        <p class="yt-download-subtitle">Paste a YouTube video, Shorts, or youtu.be link and prepare an MP3 for your library.</p>
+                    </div>
+
+                    <div class="yt-download-card">
+                        <form class="yt-download-form" id="ytDownloadForm" novalidate>
+                            <label class="yt-download-label" for="youtubeUrl">YouTube link</label>
+                            <div class="yt-download-input-row">
+                                <div class="yt-download-input-wrap">
+                                    <i class="fas fa-link" aria-hidden="true"></i>
+                                    <input class="yt-download-input" id="youtubeUrl" name="url" type="url"
+                                        inputmode="url" autocomplete="off" placeholder="https://youtu.be/..."
+                                        aria-describedby="ytDownloadFeedback">
+                                </div>
+                                <button class="btn-primary yt-download-button" id="ytDownloadButton" type="submit"
+                                    disabled>
+                                    <i class="fas btWhite fa-download" aria-hidden="true"></i>
+                                    <span class="btWhite">Download</span>
+                                </button>
+                            </div>
+                            <div class="yt-download-feedback" id="ytDownloadFeedback" aria-live="polite"></div>
+                        </form>
+
+                        <div class="yt-download-status" id="ytDownloadStatus" aria-live="polite">
+                            <div class="yt-download-video" id="ytVideoPreview">
+                                <img class="yt-download-thumb" id="ytVideoThumb" src="" alt="">
+                                <div>
+                                    <div class="yt-download-video-title" id="ytVideoTitle"></div>
+                                    <div class="yt-download-video-meta" id="ytVideoMeta"></div>
+                                </div>
+                            </div>
+
+                            <div class="yt-download-progress-shell">
+                                <div class="yt-download-progress-track" aria-hidden="true">
+                                    <div class="yt-download-progress-bar" id="ytProgressBar"></div>
+                                </div>
+                                <div class="yt-download-progress-copy">
+                                    <span id="ytProgressText">Waiting...</span>
+                                    <span id="ytProgressPercent">0%</span>
+                                </div>
+                            </div>
+
+                            <div class="yt-download-actions">
+                                <button class="btn-secondary yt-cancel-button" id="ytCancelButton" type="button"
+                                    disabled>
+                                    <i class="fas fa-times" aria-hidden="true"></i>
+                                    <span>Cancel</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
