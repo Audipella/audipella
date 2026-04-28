@@ -1177,6 +1177,12 @@ section {
     transition: width 0.25s ease;
 }
 
+.yt-download-progress-bar.is-indeterminate {
+    width: 100%;
+    background-size: 220% 100%;
+    animation: yt-progress-scan 1.15s linear infinite;
+}
+
 .yt-download-progress-copy {
     display: flex;
     justify-content: space-between;
@@ -2129,5 +2135,15 @@ footer {
 
     50% {
         background-position: 86% 84%, 14% 88%, 50% 50%;
+    }
+}
+
+@keyframes yt-progress-scan {
+    from {
+        background-position: 0% 50%;
+    }
+
+    to {
+        background-position: 220% 50%;
     }
 }
