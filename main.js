@@ -4,12 +4,13 @@ const pages = {
     features: document.getElementById('features-page'),
     workflow: document.getElementById('workflow-page'),
     'detailed-features': document.getElementById('detailed-features-page'),
+    'yt-download': document.getElementById('yt-download-page'),
     support: document.getElementById('support-page'),
     privacy: document.getElementById('privacy-page')
 };
 
 const appRoot = document.getElementById('app-root');
-const pageOrder = ['home', 'features', 'workflow', 'detailed-features', 'support', 'privacy'];
+const pageOrder = ['home', 'features', 'detailed-features', 'workflow', 'yt-download', 'support', 'privacy'];
 let currentPageId = 'home';
 let pageTransitionAnimation = null;
 
@@ -490,8 +491,353 @@ if (card && container) {
     });
 }
 
-// 10. INITIALIZATION
+// 10. YOUTUBE DOWNLOAD
+function initYouTubeDownload() {
+    const STREAM_BASE_URL = 'https://audipella.greengraphicx.com/stream';
+    const STREAM_API_KEY = 'audipella-secure-2026';
 
+    const form = document.getElementById('ytDownloadForm');
+    const urlInput = document.getElementById('youtubeUrl');
+    const downloadButton = document.getElementById('ytDownloadButton');
+    const cancelButton = document.getElementById('ytCancelButton');
+    const feedback = document.getElementById('ytDownloadFeedback');
+    const statusPanel = document.getElementById('ytDownloadStatus');
+    const preview = document.getElementById('ytVideoPreview');
+    const videoThumb = document.getElementById('ytVideoThumb');
+    const videoTitle = document.getElementById('ytVideoTitle');
+    const videoMeta = document.getElementById('ytVideoMeta');
+    const progressBar = document.getElementById('ytProgressBar');
+    const progressText = document.getElementById('ytProgressText');
+    const progressPercent = document.getElementById('ytProgressPercent');
+
+    if (!form || !urlInput || !downloadButton || !feedback) return;
+
+    let activeJobId = null;
+    let isBusy = false;
+
+    function isNetworkFetchError(error) {
+        return error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(error?.message || '');
+    }
+
+    function normalizeYouTubeUrl(value) {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return '';
+        return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    }
+
+    function getYouTubeId(value) {
+        const normalized = normalizeYouTubeUrl(value);
+        if (!normalized) return null;
+
+        try {
+            const url = new URL(normalized);
+            const host = url.hostname.toLowerCase().replace(/^www\./, '');
+            let videoId = null;
+
+            if (host === 'youtu.be') {
+                videoId = url.pathname.split('/').filter(Boolean)[0];
+            } else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+                const pathParts = url.pathname.split('/').filter(Boolean);
+                if (url.pathname === '/watch') {
+                    videoId = url.searchParams.get('v');
+                } else if ((pathParts[0] === 'shorts' || pathParts[0] === 'embed') && pathParts[1]) {
+                    videoId = pathParts[1];
+                }
+            }
+
+            return /^[a-zA-Z0-9_-]{11}$/.test(videoId || '') ? videoId : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function authHeaders(extraHeaders = {}) {
+        return {
+            'X-Api-Key': STREAM_API_KEY,
+            ...extraHeaders
+        };
+    }
+
+    function withApiKey(url) {
+        const nextUrl = new URL(url);
+        nextUrl.searchParams.set('apiKey', STREAM_API_KEY);
+        return nextUrl.toString();
+    }
+
+    function setFeedback(message, isError = false) {
+        feedback.textContent = message;
+        feedback.classList.toggle('is-error', isError);
+    }
+
+    function syncButtonState(showInvalid = false) {
+        const hasValidUrl = Boolean(getYouTubeId(urlInput.value));
+        downloadButton.disabled = isBusy || !hasValidUrl;
+        urlInput.classList.toggle('is-invalid', showInvalid && Boolean(urlInput.value.trim()) && !hasValidUrl);
+
+        if (!isBusy) {
+            setFeedback(hasValidUrl ? 'Ready to download.' : '', false);
+        }
+    }
+
+    function setProgress(percent, detail) {
+        if (!progressBar || !progressPercent || !progressText) return;
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+        progressBar.style.width = `${safePercent}%`;
+        progressPercent.textContent = `${Math.round(safePercent)}%`;
+        progressText.textContent = detail || 'Working...';
+    }
+
+    function formatDuration(value) {
+        const seconds = Number(value);
+        if (!Number.isFinite(seconds) || seconds <= 0) return '';
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return hours > 0
+            ? `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds}`
+            : `${minutes}:${remainingSeconds}`;
+    }
+
+    function showPreview(info) {
+        if (!preview || !videoTitle || !videoMeta || !videoThumb) return;
+
+        const title = info?.title || 'YouTube audio';
+        const author = info?.author || info?.artist || info?.uploader || info?.channel || 'Unknown artist';
+        const duration = formatDuration(info?.lengthSeconds || info?.duration || 0);
+
+        videoTitle.textContent = title;
+        videoMeta.textContent = duration ? `${author} - ${duration}` : author;
+
+        if (info?.thumbnail) {
+            videoThumb.src = info.thumbnail;
+            videoThumb.alt = `${title} thumbnail`;
+            videoThumb.hidden = false;
+        } else {
+            videoThumb.removeAttribute('src');
+            videoThumb.alt = '';
+            videoThumb.hidden = true;
+        }
+
+        preview.classList.add('is-visible');
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
+    async function parseResponse(response) {
+        const text = await response.text();
+        if (!text) return {};
+
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            return { error: text };
+        }
+    }
+
+    async function apiPost(path, body) {
+        const response = await fetch(`${STREAM_BASE_URL}${path}`, {
+            method: 'POST',
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify(body || {})
+        });
+        const payload = await parseResponse(response);
+
+        if (!response.ok) {
+            throw new Error(payload.error || payload.details || 'The audio server could not complete the request.');
+        }
+
+        return payload;
+    }
+
+    async function apiGet(path) {
+        const response = await fetch(`${STREAM_BASE_URL}${path}`, {
+            method: 'GET',
+            headers: authHeaders()
+        });
+        const payload = await parseResponse(response);
+
+        if (!response.ok) {
+            throw new Error(payload.error || payload.details || 'The audio server could not complete the request.');
+        }
+
+        return payload;
+    }
+
+    async function pollUntilReady(jobId) {
+        while (activeJobId === jobId) {
+            const data = await apiGet(`/fetch-status/${encodeURIComponent(jobId)}`);
+            setProgress(data.progressPercent || 0, data.detail || 'Preparing audio...');
+
+            if (data.videoInfo) {
+                showPreview(data.videoInfo);
+            }
+
+            if (data.status === 'ready') {
+                return data;
+            }
+
+            if (data.status === 'error') {
+                throw new Error(data.detail || 'Download failed.');
+            }
+
+            if (data.status === 'cancelled') {
+                throw new Error(data.detail || 'Download was cancelled.');
+            }
+
+            await sleep(1250);
+        }
+
+        throw new Error('Download was cancelled.');
+    }
+
+    function getSafeFilename(info) {
+        const title = info?.title || 'audipella-audio';
+        const safeTitle = title.replace(/[^a-z0-9\s._-]/gi, '').trim().slice(0, 80) || 'audipella-audio';
+        return `${safeTitle}.mp3`;
+    }
+
+    function clickDownloadUrl(url) {
+        const link = document.createElement('a');
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
+    function startDirectFetchDownload(url) {
+        const directUrl = withApiKey(`${STREAM_BASE_URL}/fetch?url=${encodeURIComponent(url)}`);
+        clickDownloadUrl(directUrl);
+    }
+
+    function startDirectResultDownload(jobId) {
+        const resultUrl = withApiKey(`${STREAM_BASE_URL}/fetch-result/${encodeURIComponent(jobId)}?wait=1`);
+        clickDownloadUrl(resultUrl);
+    }
+
+    async function startBrowserDownload(jobId, info) {
+        setProgress(96, 'Starting browser download...');
+
+        let response;
+        try {
+            response = await fetch(`${STREAM_BASE_URL}/fetch-result/${encodeURIComponent(jobId)}`, {
+                method: 'GET',
+                headers: authHeaders()
+            });
+        } catch (error) {
+            if (isNetworkFetchError(error)) {
+                startDirectResultDownload(jobId);
+                return;
+            }
+
+            throw error;
+        }
+
+        if (!response.ok) {
+            const payload = await parseResponse(response);
+            throw new Error(payload.error || payload.details || 'Unable to download the audio file.');
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = getSafeFilename(info);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+    }
+
+    async function startDownload() {
+        const normalizedUrl = normalizeYouTubeUrl(urlInput.value);
+        if (!getYouTubeId(normalizedUrl)) {
+            syncButtonState(true);
+            setFeedback('Use a YouTube video, Shorts, or youtu.be link.', true);
+            return;
+        }
+
+        isBusy = true;
+        activeJobId = null;
+        preview?.classList.remove('is-visible');
+        statusPanel?.classList.add('is-visible');
+        if (cancelButton) cancelButton.disabled = true;
+        downloadButton.disabled = true;
+        setFeedback('Preparing your audio...', false);
+        setProgress(6, 'Checking video...');
+
+        try {
+            const info = await apiPost('/info', { url: normalizedUrl });
+            showPreview(info);
+            setProgress(14, 'Starting download...');
+
+            const job = await apiPost('/fetch-prepare', {
+                url: normalizedUrl,
+                videoInfo: info
+            });
+
+            activeJobId = job.jobId || job.id;
+            if (!activeJobId) {
+                throw new Error('The audio server did not return a download job.');
+            }
+
+            if (cancelButton) cancelButton.disabled = false;
+            setProgress(job.progressPercent || 18, job.detail || 'Downloading audio...');
+
+            const readyJob = await pollUntilReady(activeJobId);
+            await startBrowserDownload(activeJobId, readyJob.videoInfo || info);
+            setProgress(100, 'Download started.');
+            setFeedback('Download started.', false);
+        } catch (error) {
+            if (isNetworkFetchError(error)) {
+                startDirectFetchDownload(normalizedUrl);
+                setProgress(100, 'Download started.');
+                setFeedback('Download started.', false);
+            } else {
+                setFeedback(error.message || 'Download failed.', true);
+                setProgress(0, 'Stopped');
+            }
+        } finally {
+            isBusy = false;
+            activeJobId = null;
+            if (cancelButton) cancelButton.disabled = true;
+            syncButtonState(false);
+        }
+    }
+
+    async function cancelDownload() {
+        const jobId = activeJobId;
+        if (!jobId) return;
+
+        if (cancelButton) cancelButton.disabled = true;
+        setProgress(0, 'Cancelling...');
+
+        try {
+            await apiPost(`/fetch-cancel/${encodeURIComponent(jobId)}`, {});
+        } catch (error) {
+        } finally {
+            activeJobId = null;
+            isBusy = false;
+            setFeedback('Download cancelled.', true);
+            syncButtonState(false);
+        }
+    }
+
+    urlInput.addEventListener('input', () => syncButtonState(false));
+    urlInput.addEventListener('blur', () => syncButtonState(true));
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        startDownload();
+    });
+    cancelButton?.addEventListener('click', cancelDownload);
+
+    syncButtonState(false);
+}
+
+// 11. INITIALIZATION
+
+initYouTubeDownload();
 syncWaveAnimation();
 syncAmbientAnimation();
 updateNavScrollState();
