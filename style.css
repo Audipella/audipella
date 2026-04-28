@@ -1,1002 +1,2149 @@
-// 1. SELECTORS & STATE
-const pages = {
-    home: document.getElementById('home-page'),
-    features: document.getElementById('features-page'),
-    workflow: document.getElementById('workflow-page'),
-    'detailed-features': document.getElementById('detailed-features-page'),
-    'yt-download': document.getElementById('yt-download-page'),
-    support: document.getElementById('support-page'),
-    privacy: document.getElementById('privacy-page')
-};
-
-const appRoot = document.getElementById('app-root');
-const pageOrder = ['home', 'features', 'detailed-features', 'workflow', 'yt-download', 'support', 'privacy'];
-let currentPageId = 'home';
-let pageTransitionAnimation = null;
-
-const nav = document.querySelector('nav');
-const menuToggle = document.getElementById('menuToggle');
-const navLinksShellFrame = document.getElementById('navLinksShellFrame');
-const navLinksShell = document.getElementById('navLinksShell');
-const mobileNavBreakpoint = 768;
-
-const rootStyle = document.documentElement.style;
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const finePointer = window.matchMedia('(pointer: fine)');
-const hoverCapable = window.matchMedia('(hover: hover)');
-
-// 2. ROUTING & PAGE TRANSITIONS
-function applyPageState(pageId) {
-    window.location.hash = pageId === 'home' ? '' : pageId;
-
-    Object.keys(pages).forEach(id => {
-        if (pages[id]) pages[id].style.display = 'none';
-    });
-    if (pages[pageId]) pages[pageId].style.display = 'block';
-
-    const brandLink = document.querySelector('.brand-link[data-page="home"]');
-    brandLink?.classList.toggle('active', pageId === 'home');
-
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        const linkPage = link.getAttribute('data-page');
-        link.classList.toggle('active', linkPage === pageId);
-    });
-
-    currentPageId = pageId;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-function resetPageTransitionStyles() {
-    if (!appRoot) return;
-    appRoot.style.opacity = '1';
-    appRoot.style.transform = 'none';
-    appRoot.style.filter = 'none';
+/* AFTER */
+:root {
+    color-scheme: dark;
+    --cursor-x: 50vw;
+    --cursor-y: 30vh;
+    --cursor-x-soft: 62vw;
+    --cursor-y-soft: 20vh;
 }
 
-function showPage(pageId, { animate = true } = {}) {
-    if (!pages[pageId]) return;
-    if (pageId === currentPageId && pages[pageId].style.display === 'block') return;
+body {
+    color-scheme: dark;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: #111218;
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    scroll-behavior: smooth;
+}
 
-    if (!animate || !appRoot || typeof appRoot.animate !== 'function') {
-        applyPageState(pageId);
-        resetPageTransitionStyles();
-        return;
+.hidden {
+    display: none;
+}
+
+.page-hidden {
+    display: none;
+}
+
+.nav-links-shell {
+    display: block;
+}
+
+.nav-links-shell-frame {
+    display: contents;
+}
+
+.nav-links-shell,
+.nav-links-shell.show,
+.nav-links-shell.hidden {
+    display: contents;
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        position: relative;
+        align-items: center;
+        row-gap: 0;
     }
 
-    if (pageTransitionAnimation) {
-        pageTransitionAnimation.cancel();
-        pageTransitionAnimation = null;
-        resetPageTransitionStyles();
+    .nav-links {
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
     }
 
-    const currentIndex = pageOrder.indexOf(currentPageId);
-    const nextIndex = pageOrder.indexOf(pageId);
-    const movingForward = nextIndex >= currentIndex;
-    const exitOffset = movingForward ? -28 : 28;
-    const enterOffset = movingForward ? 28 : -28;
-
-    const exitAnimation = appRoot.animate([
-        { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' },
-        { opacity: 0, transform: `translateX(${exitOffset}px) scale(0.985)`, filter: 'blur(10px)' }
-    ], {
-        duration: 220,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-        fill: 'forwards'
-    });
-
-    pageTransitionAnimation = exitAnimation;
-
-    exitAnimation.onfinish = () => {
-        applyPageState(pageId);
-
-        const enterAnimation = appRoot.animate([
-            { opacity: 0, transform: `translateX(${enterOffset}px) scale(0.985)`, filter: 'blur(10px)' },
-            { opacity: 1, transform: 'translateX(0) scale(1)', filter: 'blur(0px)' }
-        ], {
-            duration: 360,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            fill: 'forwards'
-        });
-
-        pageTransitionAnimation = enterAnimation;
-
-        enterAnimation.onfinish = () => {
-            pageTransitionAnimation = null;
-            resetPageTransitionStyles();
-        };
-    };
-}
-
-// 3. NAVIGATION LISTENERS
-document.querySelectorAll('[data-page]').forEach(el => {
-    el.addEventListener('click', (e) => {
-        const targetPage = el.getAttribute('data-page');
-        if (targetPage && pages[targetPage]) {
-            e.preventDefault();
-            showPage(targetPage);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (window.innerWidth <= mobileNavBreakpoint) {
-                setMobileMenuState(false);
-            }
-        }
-    });
-});
-
-function updateNavScrollState() {
-    if (nav) nav.classList.toggle('is-scrolled', window.scrollY > 12);
-}
-window.addEventListener('scroll', updateNavScrollState, { passive: true });
-
-// 4. MOBILE MENU
-function setMobileMenuState(isOpen) {
-    if (!navLinksShell || !navLinksShellFrame) return;
-
-    navLinksShell.classList.toggle('show', isOpen);
-    navLinksShell.classList.toggle('hidden', !isOpen);
-
-    const isMobileViewport = window.innerWidth <= mobileNavBreakpoint;
-    const isExpanded = isMobileViewport && isOpen;
-
-    navLinksShellFrame.classList.toggle('show', isExpanded);
-
-    if (menuToggle) {
-        menuToggle.classList.toggle('active', isExpanded);
-        menuToggle.setAttribute('aria-expanded', String(isExpanded));
-        menuToggle.setAttribute('aria-label', isExpanded ? 'Close menu' : 'Open menu');
+    .nav-links-shell-frame {
+        display: block;
+        position: static;
+        flex: 0 0 100%;
+        width: 100%;
+        z-index: auto;
+        opacity: 0;
+        visibility: hidden;
+        overflow: hidden;
+        pointer-events: none;
+        padding: 0;
+        margin-top: 0;
+        border: 0;
+        border-top: 1px solid transparent;
+        border-radius: 0;
+        background: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: none;
+        transform: none;
+        transition:
+            opacity 0.24s ease,
+            margin-top 0.28s ease,
+            border-color 0.28s ease,
+            visibility 0s linear 0.34s;
     }
 
-    navLinksShell.setAttribute('aria-hidden', isMobileViewport ? String(!isOpen) : 'false');
-    navLinksShellFrame.setAttribute('aria-hidden', isMobileViewport ? String(!isOpen) : 'false');
-    if (nav) nav.classList.toggle('menu-open', isExpanded);
-}
-
-if (menuToggle && navLinksShell && navLinksShellFrame) {
-    menuToggle.addEventListener('click', () => {
-        setMobileMenuState(!navLinksShell.classList.contains('show'));
-    });
-
-    document.addEventListener('click', (event) => {
-        if (window.innerWidth > mobileNavBreakpoint) return;
-        if (!navLinksShell.classList.contains('show')) return;
-        if (nav?.contains(event.target)) return;
-        setMobileMenuState(false);
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        if (!navLinksShell.classList.contains('show')) return;
-        setMobileMenuState(false);
-    });
-
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > mobileNavBreakpoint) {
-            setMobileMenuState(false);
-        }
-    });
-}
-
-
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) syncWaveAnimation();
-});
-
-// Mode Tabs for Workflow Page and Detailed Features Page
-function initModeTabs() {
-    // Handle workflow page tabs
-    const workflowTabs = document.querySelector('#workflow-page .mode-tab');
-    const playerSteps = document.querySelector('.mode-steps-player');
-    const studioSteps = document.querySelector('.mode-steps-studio');
-
-    if (workflowTabs && playerSteps && studioSteps) {
-        const workflowPageTabs = document.querySelectorAll('#workflow-page .mode-tab');
-        workflowPageTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const mode = tab.dataset.mode;
-
-                // Update tab states within this page only
-                workflowPageTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                // Show/hide appropriate steps
-                if (mode === 'player') {
-                    playerSteps.style.display = 'flex';
-                    studioSteps.style.display = 'none';
-                } else {
-                    playerSteps.style.display = 'none';
-                    studioSteps.style.display = 'flex';
-                }
-            });
-        });
+    .nav-links-shell-frame.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        margin-top: 10px;
+        border-top-color: rgba(255, 255, 255, 0.08);
+        transition-delay: 0s, 0s, 0s, 0s;
     }
 
-    // Handle detailed features page tabs
-    const detailedFeaturesTabs = document.querySelector('#detailed-features-page .mode-tab');
-    const featureContents = document.querySelectorAll('.feature-mode-content');
+    .nav-links-shell-frame>.nav-links-shell,
+    .nav-links-shell-frame>.nav-links-shell.show,
+    .nav-links-shell-frame>.nav-links-shell.hidden {
+        display: block;
+        position: static;
+        z-index: auto;
+        max-height: 0;
+        opacity: 1;
+        visibility: visible;
+        overflow: hidden;
+        pointer-events: auto;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        backdrop-filter: none;
+        box-shadow: none;
+        transform: none;
+        transition: max-height 0.34s ease;
+    }
 
-    if (detailedFeaturesTabs && featureContents.length) {
-        const detailsPageTabs = document.querySelectorAll('#detailed-features-page .mode-tab');
-        detailsPageTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const mode = tab.dataset.mode;
+    .nav-links-shell-frame>.nav-links-shell.hidden {
+        max-height: 0;
+    }
 
-                // Update tab states within this page only
-                detailsPageTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+    .nav-links-shell-frame>.nav-links-shell.show {
+        max-height: 280px;
+    }
 
-                // Show/hide appropriate feature sections
-                featureContents.forEach(content => {
-                    const contentMode = content.dataset.content;
-                    content.style.display = contentMode === mode ? 'block' : 'none';
-                });
-            });
-        });
+    .nav-links a {
+        width: 100%;
+        padding: 15px 10px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: color 0.2s ease, opacity 0.24s ease, transform 0.24s ease;
+    }
+
+    .nav-links a+a {
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .nav-links-shell.show .nav-links a {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
     }
 }
 
-// Initialize mode tabs on load
-initModeTabs();
-
-// 5. STORE LINKS
-const STORE_URLS = {
-    play: 'https://play.google.com/store/apps/details?id=com.audipella',
-    app: 'https://apps.apple.com/gh/app/audipella/id6759680938'
-};
-
-function getPreferredStoreUrl() {
-    const userAgent = (navigator.userAgent || '').toLowerCase();
-    const platform = (navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
-    return /android|windows/.test(userAgent) || /android|windows/.test(platform) ? STORE_URLS.play : STORE_URLS.app;
+.ambient-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.04), transparent 22%),
+        radial-gradient(circle at 84% 12%, rgba(40, 167, 69, 0.08), transparent 18%),
+        linear-gradient(180deg, #161922 0%, #111218 48%, #0b0f15 100%);
+    background-size: 132% 132%, 124% 124%, 100% 100%;
+    background-position: 14% 16%, 86% 12%, 50% 50%;
+    will-change: background-position;
+    animation: gradientMove 18s ease-in-out infinite;
 }
 
-const downloadStoreLink = document.getElementById('downloadStoreLink');
-if (downloadStoreLink) {
-    const preferredStoreUrl = getPreferredStoreUrl();
-    const preferredStoreName = preferredStoreUrl === STORE_URLS.play ? 'Google Play' : 'the App Store';
-    downloadStoreLink.href = preferredStoreUrl;
-    downloadStoreLink.target = '_blank';
-    downloadStoreLink.rel = 'noopener noreferrer';
-    downloadStoreLink.setAttribute('aria-label', `Download Audipella on ${preferredStoreName}`);
-    downloadStoreLink.title = `Open ${preferredStoreName} in a new tab`;
+.ambient-background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 52px 52px;
+    opacity: 0.18;
+    mask-image: radial-gradient(circle at center, black 24%, transparent 88%);
 }
 
-// 6. AUDIO & WAVE ANIMATION
-const backgroundAudio = document.getElementById('backgroundAudio');
-const waveContainer = document.getElementById('wave-container');
-const waveBars = waveContainer ? Array.from(waveContainer.querySelectorAll('.bar')) : [];
-const waveDurations = [400, 550, 480, 620, 500];
-const waveMultipliers = [1.2, 1.0, 1.0, 0.5, 1.4];
-const waveMinHeight = 12;
-const waveBaseHeight = 35;
-let waveAnimations = [];
-
-if (backgroundAudio) {
-    const backgroundVolume = 0.008;
-    let audioStarted = false;
-    const unlockAudioEvents = ['pointerdown', 'touchstart', 'keydown'];
-
-    function tryStartBackgroundAudio() {
-        if (audioStarted) return;
-        backgroundAudio.volume = backgroundVolume;
-        backgroundAudio.muted = false;
-        backgroundAudio.play().then(() => {
-            audioStarted = true;
-            unlockAudioEvents.forEach(ev => window.removeEventListener(ev, tryStartBackgroundAudio));
-        }).catch(() => { });
-    }
-
-    window.addEventListener('load', () => window.requestAnimationFrame(tryStartBackgroundAudio), { once: true });
-    unlockAudioEvents.forEach(ev => window.addEventListener(ev, tryStartBackgroundAudio, { once: true }));
+.ambient-background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(40, 167, 69, 0.08), transparent 34%);
+    opacity: 0.7;
 }
 
-function easeInOutSin(t) { return (1 - Math.cos(Math.PI * t)) / 2; }
-
-// AFTER
-function animateWaveBar(bar, duration, multiplier, phaseOffset) {
-    let start = null, cancelled = false;
-    function step(timestamp) {
-        if (cancelled) return;
-        if (document.hidden) {
-            // pause loop while tab/app is backgrounded, resume on next visible frame
-            window.requestAnimationFrame(step);
-            return;
-        }
-        if (start === null) start = timestamp - phaseOffset;
-        const elapsed = timestamp - start;
-        const cycleDuration = duration * 2 + 50;
-        const t = (elapsed % cycleDuration) / cycleDuration;
-        const halfPoint = duration / cycleDuration;
-        const easedValue = t < halfPoint ? easeInOutSin(t / halfPoint) : easeInOutSin(1 - ((t - halfPoint) / (1 - halfPoint)));
-        bar.style.height = `${waveMinHeight + ((waveBaseHeight * multiplier) - waveMinHeight) * easedValue}px`;
-        bar.style.opacity = (0.6 + (0.4 * easedValue)).toFixed(3);
-        window.requestAnimationFrame(step);
-    }
-    window.requestAnimationFrame(step);
-    return { stop() { cancelled = true; } };
+.ambient-orb {
+    position: absolute;
+    left: var(--cursor-x);
+    top: var(--cursor-y);
+    width: clamp(240px, 34vw, 460px);
+    height: clamp(240px, 34vw, 460px);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(12px);
+    opacity: 0.78;
+    will-change: transform, left, top;
 }
 
-function syncWaveAnimation() {
-    waveAnimations.forEach(a => a.stop());
-    if (!waveBars.length) {
-        waveBars.forEach((bar, i) => {
-            bar.style.height = `${waveMinHeight + ((waveBaseHeight * waveMultipliers[i]) - waveMinHeight) * 0.45}px`;
-            bar.style.opacity = '0.85';
-        });
-        return;
-    }
-    waveAnimations = waveBars.map((bar, i) => animateWaveBar(bar, waveDurations[i], waveMultipliers[i], i * (waveDurations[i] / 3)));
+.ambient-orb-primary {
+    background: radial-gradient(circle, rgba(251, 255, 0, 0.16) 0%, rgba(40, 167, 69, 0.17) 34%, rgba(40, 167, 69, 0.08) 56%, transparent 72%);
 }
 
-// 7. AMBIENT BACKGROUND
-function setAmbientPosition(pX, pY, sX, sY) {
-    rootStyle.setProperty('--cursor-x', `${pX}px`);
-    rootStyle.setProperty('--cursor-y', `${pY}px`);
-    rootStyle.setProperty('--cursor-x-soft', `${sX}px`);
-    rootStyle.setProperty('--cursor-y-soft', `${sY}px`);
+.ambient-orb-secondary {
+    left: var(--cursor-x-soft);
+    top: var(--cursor-y-soft);
+    width: clamp(180px, 24vw, 320px);
+    height: clamp(180px, 24vw, 320px);
+    opacity: 0.5;
+    filter: blur(18px);
+    background: radial-gradient(circle, rgba(42, 178, 255, 0.16) 0%, rgba(40, 167, 69, 0.12) 40%, transparent 72%);
 }
 
-let aTargetX = window.innerWidth * 0.5, aTargetY = window.innerHeight * 0.3;
-let aCurrX = aTargetX, aCurrY = aTargetY;
-let ambientAnimationFrame = null;
-let ambientTrackingEnabled = false;
-
-function setAmbientFallbackPosition() {
-    const primaryX = window.innerWidth * 0.52;
-    const primaryY = window.innerHeight * 0.28;
-    const secondaryX = window.innerWidth * 0.64;
-    const secondaryY = window.innerHeight * 0.18;
-    aTargetX = primaryX;
-    aTargetY = primaryY;
-    aCurrX = primaryX;
-    aCurrY = primaryY;
-    setAmbientPosition(primaryX, primaryY, secondaryX, secondaryY);
+nav,
+main,
+footer {
+    position: relative;
+    z-index: 1;
 }
 
-function resetAmbientTarget() {
-    aTargetX = window.innerWidth * 0.5;
-    aTargetY = window.innerHeight * 0.3;
+/* custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-function handleAmbientPointerMove(e) {
-    aTargetX = e.clientX;
-    aTargetY = e.clientY;
+::-webkit-scrollbar-track {
+    background: #1a1c25;
 }
 
-function shouldAnimateAmbient() {
-    return hoverCapable.matches
-        && finePointer.matches
-        && window.innerWidth > mobileNavBreakpoint;
+::-webkit-scrollbar-thumb {
+    background: #28a745;
+    border-radius: 4px;
 }
 
-// NEW: gentle auto-pan for touch/iOS devices
-let autoPanFrame = null;
-let autoPanStart = null;
-
-// AFTER
-function startAmbientAutoPan() {
-    if (autoPanFrame !== null) return; // already running, leave it alone
-
-    function step(ts) {
-        if (autoPanStart === null) autoPanStart = ts;
-        const elapsed = ts - autoPanStart;
-        const pX = window.innerWidth * (0.38 + 0.24 * Math.sin(elapsed / 7000));
-        const pY = window.innerHeight * (0.22 + 0.18 * Math.sin(elapsed / 9000 + 1));
-        const sX = window.innerWidth * (0.62 + 0.16 * Math.sin(elapsed / 6000 + 2));
-        const sY = window.innerHeight * (0.14 + 0.12 * Math.sin(elapsed / 8000 + 3));
-        setAmbientPosition(pX, pY, sX, sY);
-        autoPanFrame = window.requestAnimationFrame(step);
-    }
-    autoPanFrame = window.requestAnimationFrame(step);
+/* container */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
 }
 
-function stopAmbientAutoPan() {
-    if (autoPanFrame !== null) {
-        window.cancelAnimationFrame(autoPanFrame);
-        autoPanFrame = null;
-        autoPanStart = null;
+/* navigation */
+nav {
+    --nav-glass-bg:
+        linear-gradient(180deg, rgba(11, 15, 21, 0.42), rgba(11, 15, 21, 0.16)),
+        radial-gradient(circle at top center, rgba(40, 167, 69, 0.08), transparent 55%);
+    --nav-glass-filter: blur(18px) saturate(135%);
+    background: transparent;
+    backdrop-filter: blur(0px) saturate(100%);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid transparent;
+    box-shadow: none;
+    padding: 16px 0;
+    transition: background 0.28s ease, backdrop-filter 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+nav.is-scrolled,
+nav.menu-open {
+    background: var(--nav-glass-bg);
+    backdrop-filter: var(--nav-glass-filter);
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.nav-links-shell-frame {
+    display: block;
+    flex: 0 0 auto;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 22px;
+    background: var(--nav-glass-bg);
+    -webkit-backdrop-filter: var(--nav-glass-filter);
+    backdrop-filter: var(--nav-glass-filter);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.nav-links-shell,
+.nav-links-shell.show,
+.nav-links-shell.hidden {
+    display: block;
+}
+
+.brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    text-decoration: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.brand-link:hover {
+    transform: translateY(-1px);
+}
+
+.brand-link:focus-visible {
+    outline: 2px solid rgba(40, 167, 69, 0.9);
+    outline-offset: 4px;
+    border-radius: 18px;
+}
+
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.brand-link:hover .brand-badge {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.brand-link.active .brand-badge {
+    background: linear-gradient(180deg, rgba(40, 167, 69, 0.28), rgba(40, 167, 69, 0.12));
+    border-color: rgba(40, 167, 69, 0.42);
+    box-shadow: 0 14px 30px rgba(40, 167, 69, 0.24);
+}
+
+.brand-mark {
+    width: auto;
+    height: 24px;
+    display: block;
+}
+
+.brand-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: white;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.brand-link.active .brand-name {
+    color: #eaf8ef;
+}
+
+.nav-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.nav-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    color: rgba(234, 239, 244, 0.9);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease, opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-links a.active {
+    color: #eaf8ef;
+    background: linear-gradient(180deg, rgba(40, 167, 69, 0.28), rgba(40, 167, 69, 0.12));
+    border-color: rgba(40, 167, 69, 0.42);
+    box-shadow: 0 14px 30px rgba(40, 167, 69, 0.18);
+}
+
+.mobile-menu-btn {
+    display: none;
+    appearance: none;
+    background: #ffffff10;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 14px;
+    color: white;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mobile-menu-btn.active {
+    background: rgba(40, 167, 69, 0.16);
+    border-color: rgba(40, 167, 69, 0.38);
+    transform: translateY(1px);
+}
+
+.menu-icon {
+    position: relative;
+    width: 18px;
+    height: 14px;
+}
+
+.menu-icon span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: #fff;
+    transform-origin: center;
+    transition: transform 0.24s ease, opacity 0.18s ease, top 0.24s ease;
+}
+
+.menu-icon span:nth-child(1) {
+    top: 0;
+}
+
+.menu-icon span:nth-child(2) {
+    top: 6px;
+}
+
+.menu-icon span:nth-child(3) {
+    top: 12px;
+}
+
+.mobile-menu-btn.active .menu-icon span:nth-child(1) {
+    top: 6px;
+    transform: rotate(45deg);
+}
+
+.mobile-menu-btn.active .menu-icon span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0.4);
+}
+
+.mobile-menu-btn.active .menu-icon span:nth-child(3) {
+    top: 6px;
+    transform: rotate(-45deg);
+}
+
+/* hero & sections */
+section {
+    padding: 80px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.hero {
+    padding-top: 100px;
+    padding-bottom: 100px;
+}
+
+.hero-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.btWhite {
+    color: white;
+}
+
+.hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+}
+
+.phone-mockup-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 20px 0 40px;
+}
+
+.phone-frame {
+    position: relative;
+    width: min(var(--phone-width, 330px), 80vw);
+    max-width: 80vw;
+    height: auto;
+    padding: 10px;
+    background: #1a1a1a;
+    border-radius: 38px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 2px 2px rgba(255, 255, 255, 0.1);
+    border: 1.5px solid #333;
+    margin: 0 auto;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+}
+
+.phone-notch {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 5px;
+    background: #000;
+    border-radius: 10px;
+    z-index: 10;
+}
+
+.phone-live-badge {
+    animation: live-breathe 3.8s ease-in-out infinite;
+    transform-origin: center;
+}
+
+
+
+@keyframes live-breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
     }
 }
 
-function animateAmbient() {
-    if (!ambientTrackingEnabled) {
-        ambientAnimationFrame = null;
-        return;
-    }
-    aCurrX += (aTargetX - aCurrX) * 0.12;
-    aCurrY += (aTargetY - aCurrY) * 0.12;
-    setAmbientPosition(aCurrX, aCurrY, aCurrX + (window.innerWidth * 0.12), aCurrY - (window.innerHeight * 0.08));
-    ambientAnimationFrame = window.requestAnimationFrame(animateAmbient);
+.workspace-img {
+    width: 100%;
+    height: auto;
+    border-radius: 28px;
+    display: block;
+    object-fit: cover;
+    background: #000;
 }
 
-// AFTER
-function syncAmbientAnimation() {
-    const shouldAnimate = shouldAnimateAmbient();
-
-    if (shouldAnimate === ambientTrackingEnabled) {
-        if (!shouldAnimate) {
-            startAmbientAutoPan(); // slow auto-pan instead of frozen
-        }
-        return;
-    }
-
-    ambientTrackingEnabled = shouldAnimate;
-
-    if (ambientTrackingEnabled) {
-        stopAmbientAutoPan();
-        resetAmbientTarget();
-        aCurrX = aTargetX;
-        aCurrY = aTargetY;
-        window.addEventListener('pointermove', handleAmbientPointerMove);
-        window.addEventListener('mouseleave', resetAmbientTarget);
-        if (ambientAnimationFrame === null) {
-            ambientAnimationFrame = window.requestAnimationFrame(animateAmbient);
-        }
-        return;
-    }
-
-    window.removeEventListener('pointermove', handleAmbientPointerMove);
-    window.removeEventListener('mouseleave', resetAmbientTarget);
-    if (ambientAnimationFrame !== null) {
-        window.cancelAnimationFrame(ambientAnimationFrame);
-        ambientAnimationFrame = null;
-    }
-    stopAmbientAutoPan();
-    startAmbientAutoPan(); // gentle motion for touch/iOS
+.phone-home-bar {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
 }
 
-// 8. FAQ ACCORDION
-document.querySelectorAll('.faq-item').forEach(item => {
-    const questionDiv = item.querySelector('.faq-question');
-    const answer = item.querySelector('.faq-answer');
-    const icon = questionDiv?.querySelector('span');
-
-    if (answer) answer.style.maxHeight = '0px';
-    if (icon) icon.textContent = '+';
-
-    questionDiv?.addEventListener('click', () => {
-        const isOpen = item.classList.contains('open');
-        document.querySelectorAll('.faq-item').forEach(i => {
-            i.classList.remove('open');
-            const ans = i.querySelector('.faq-answer');
-            if (ans) ans.style.maxHeight = '0px';
-            const ic = i.querySelector('.faq-question span');
-            if (ic) ic.textContent = '+';
-        });
-
-        if (!isOpen) {
-            item.classList.add('open');
-            if (answer) answer.style.maxHeight = `${answer.scrollHeight}px`;
-            if (icon) icon.textContent = '−';
-        }
-    });
-});
-
-// 9. 3D TILT
-const card = document.querySelector('.phone-frame');
-const container = document.querySelector('.phone-mockup-container');
-let resetTimer;
-
-if (card && container) {
-    container.addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 768) return;
-        clearTimeout(resetTimer);
-        card.style.transition = "none";
-        const rect = container.getBoundingClientRect();
-        const rotateX = (rect.height / 2 - (e.clientY - rect.top)) / 15;
-        const rotateY = ((e.clientX - rect.left) - rect.width / 2) / 15;
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(-20px)`;
-        resetTimer = setTimeout(() => {
-            card.style.transition = "transform 1.2s cubic-bezier(0.23, 1, 0.32, 1)";
-            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)`;
-        }, 1500);
-    });
+.mini-panel {
+    --mini-panel-base-transform: translateX(-50%);
+    position: absolute;
+    left: 0;
+    bottom: 34px;
+    transform: var(--mini-panel-base-transform);
+    transform-origin: bottom left;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(220px, 62%);
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(15, 20, 27, 0.78), rgba(15, 20, 27, 0.58));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(16px) saturate(145%);
+    pointer-events: none;
+    will-change: transform;
+    animation: mini-panel-float 5.8s ease-in-out infinite;
 }
 
-// 10. YOUTUBE DOWNLOAD
-function initYouTubeDownload() {
-    const STREAM_BASE_URL = 'https://audipella.greengraphicx.com/stream';
-    const STREAM_API_KEY = 'audipella-secure-2026';
-
-    const form = document.getElementById('ytDownloadForm');
-    const urlInput = document.getElementById('youtubeUrl');
-    const downloadButton = document.getElementById('ytDownloadButton');
-    const cancelButton = document.getElementById('ytCancelButton');
-    const feedback = document.getElementById('ytDownloadFeedback');
-    const statusPanel = document.getElementById('ytDownloadStatus');
-    const preview = document.getElementById('ytVideoPreview');
-    const videoThumb = document.getElementById('ytVideoThumb');
-    const videoTitle = document.getElementById('ytVideoTitle');
-    const videoMeta = document.getElementById('ytVideoMeta');
-    const progressBar = document.getElementById('ytProgressBar');
-    const progressText = document.getElementById('ytProgressText');
-    const progressPercent = document.getElementById('ytProgressPercent');
-
-    if (!form || !urlInput || !downloadButton || !feedback) return;
-
-    let activeJobId = null;
-    let isBusy = false;
-    let completionCleanupTimer = null;
-
-    function isNetworkFetchError(error) {
-        return error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(error?.message || '');
-    }
-
-    function normalizeYouTubeUrl(value) {
-        const trimmed = String(value || '').trim();
-        if (!trimmed) return '';
-        return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    }
-
-    function getYouTubeId(value) {
-        const normalized = normalizeYouTubeUrl(value);
-        if (!normalized) return null;
-
-        try {
-            const url = new URL(normalized);
-            const host = url.hostname.toLowerCase().replace(/^www\./, '');
-            let videoId = null;
-
-            if (host === 'youtu.be') {
-                videoId = url.pathname.split('/').filter(Boolean)[0];
-            } else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
-                const pathParts = url.pathname.split('/').filter(Boolean);
-                if (url.pathname === '/watch') {
-                    videoId = url.searchParams.get('v');
-                } else if ((pathParts[0] === 'shorts' || pathParts[0] === 'embed') && pathParts[1]) {
-                    videoId = pathParts[1];
-                }
-            }
-
-            return /^[a-zA-Z0-9_-]{11}$/.test(videoId || '') ? videoId : null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function authHeaders(extraHeaders = {}) {
-        return {
-            'X-Api-Key': STREAM_API_KEY,
-            ...extraHeaders
-        };
-    }
-
-    function withApiKey(url) {
-        const nextUrl = new URL(url);
-        nextUrl.searchParams.set('apiKey', STREAM_API_KEY);
-        return nextUrl.toString();
-    }
-
-    function setFeedback(message, isError = false) {
-        feedback.textContent = message;
-        feedback.classList.toggle('is-error', isError);
-    }
-
-    function syncButtonState(showInvalid = false, updateFeedback = true) {
-        const hasValidUrl = Boolean(getYouTubeId(urlInput.value));
-        downloadButton.disabled = isBusy || !hasValidUrl;
-        urlInput.classList.toggle('is-invalid', showInvalid && Boolean(urlInput.value.trim()) && !hasValidUrl);
-
-        if (!isBusy && updateFeedback) {
-            setFeedback(hasValidUrl ? 'Ready to download.' : 'Enter a valid YouTube link to enable download.', false);
-        }
-    }
-
-    function setProgress(percent, detail, options = {}) {
-        if (!progressBar || !progressPercent || !progressText) return;
-        const { indeterminate = false, percentLabel = null } = options;
-        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
-        progressBar.classList.toggle('is-indeterminate', indeterminate);
-        progressBar.style.width = indeterminate ? '100%' : `${safePercent}%`;
-        progressPercent.textContent = percentLabel || (indeterminate ? 'Working' : `${Math.round(safePercent)}%`);
-        progressText.textContent = detail || 'Working...';
-    }
-
-    function setDownloadStage(percent, detail, feedbackMessage = detail, options = {}) {
-        setProgress(percent, detail, options);
-        setFeedback(feedbackMessage, Boolean(options.isError));
-    }
-
-    function clearCompletionCleanup() {
-        if (completionCleanupTimer !== null) {
-            window.clearTimeout(completionCleanupTimer);
-            completionCleanupTimer = null;
-        }
-    }
-
-    function resetDownloadStatus() {
-        if (isBusy) return;
-        clearCompletionCleanup();
-        activeJobId = null;
-        preview?.classList.remove('is-visible');
-        statusPanel?.classList.remove('is-visible');
-        setProgress(0, 'Waiting...');
-    }
-
-    function scheduleCompletionCleanup(delay = 2600) {
-        clearCompletionCleanup();
-        completionCleanupTimer = window.setTimeout(() => {
-            completionCleanupTimer = null;
-            if (isBusy) return;
-            preview?.classList.remove('is-visible');
-            statusPanel?.classList.remove('is-visible');
-            setProgress(0, 'Waiting...');
-            syncButtonState(false);
-        }, delay);
-    }
-
-    function formatDuration(value) {
-        const seconds = Number(value);
-        if (!Number.isFinite(seconds) || seconds <= 0) return '';
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
-        return hours > 0
-            ? `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds}`
-            : `${minutes}:${remainingSeconds}`;
-    }
-
-    function showPreview(info) {
-        if (!preview || !videoTitle || !videoMeta || !videoThumb) return;
-
-        const title = info?.title || 'YouTube audio';
-        const author = info?.author || info?.artist || info?.uploader || info?.channel || 'Unknown artist';
-        const duration = formatDuration(info?.lengthSeconds || info?.duration || 0);
-
-        videoTitle.textContent = title;
-        videoMeta.textContent = duration ? `${author} - ${duration}` : author;
-
-        if (info?.thumbnail) {
-            videoThumb.src = info.thumbnail;
-            videoThumb.alt = `${title} thumbnail`;
-            videoThumb.hidden = false;
-        } else {
-            videoThumb.removeAttribute('src');
-            videoThumb.alt = '';
-            videoThumb.hidden = true;
-        }
-
-        preview.classList.add('is-visible');
-    }
-
-    function sleep(ms) {
-        return new Promise(resolve => window.setTimeout(resolve, ms));
-    }
-
-    async function parseResponse(response) {
-        const text = await response.text();
-        if (!text) return {};
-
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return { error: text };
-        }
-    }
-
-    async function apiPost(path, body) {
-        const response = await fetch(`${STREAM_BASE_URL}${path}`, {
-            method: 'POST',
-            headers: authHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify(body || {})
-        });
-        const payload = await parseResponse(response);
-
-        if (!response.ok) {
-            throw new Error(payload.error || payload.details || 'The audio server could not complete the request.');
-        }
-
-        return payload;
-    }
-
-    async function apiGet(path) {
-        const response = await fetch(`${STREAM_BASE_URL}${path}`, {
-            method: 'GET',
-            headers: authHeaders()
-        });
-        const payload = await parseResponse(response);
-
-        if (!response.ok) {
-            throw new Error(payload.error || payload.details || 'The audio server could not complete the request.');
-        }
-
-        return payload;
-    }
-
-    function getServerProgress(data) {
-        if (data?.status === 'ready') return 86;
-        return Math.min(84, Math.max(0, Number(data?.progressPercent) || 0));
-    }
-
-    function getServerDetail(data) {
-        const detail = typeof data?.detail === 'string' ? data.detail.trim() : '';
-        if (detail) return detail;
-
-        switch (data?.phase || data?.status) {
-            case 'queued':
-                return 'Queued on the audio server...';
-            case 'preparing':
-                return 'Preparing audio...';
-            case 'downloading':
-                return 'Downloading audio...';
-            case 'converting':
-                return 'Converting to MP3...';
-            case 'tagging':
-                return 'Embedding metadata...';
-            case 'ready':
-                return 'Audio is ready to save.';
-            default:
-                return 'Preparing audio...';
-        }
-    }
-
-    function getServerFeedback(data) {
-        switch (data?.phase || data?.status) {
-            case 'queued':
-                return 'Queued on the server.';
-            case 'preparing':
-                return 'Preparing the audio file.';
-            case 'downloading':
-                return 'Downloading audio from YouTube.';
-            case 'converting':
-                return 'Converting audio to MP3.';
-            case 'tagging':
-                return 'Adding title and artwork metadata.';
-            case 'ready':
-                return 'Audio is ready. Saving now.';
-            default:
-                return 'Processing audio...';
-        }
-    }
-
-    async function pollUntilReady(jobId) {
-        while (activeJobId === jobId) {
-            const data = await apiGet(`/fetch-status/${encodeURIComponent(jobId)}`);
-            setDownloadStage(getServerProgress(data), getServerDetail(data), getServerFeedback(data));
-
-            if (data.videoInfo) {
-                showPreview(data.videoInfo);
-            }
-
-            if (data.status === 'ready') {
-                setDownloadStage(86, 'Audio is ready. Preparing browser save...', 'Audio is ready. Saving now.');
-                return data;
-            }
-
-            if (data.status === 'error') {
-                throw new Error(data.detail || 'Download failed.');
-            }
-
-            if (data.status === 'cancelled') {
-                throw new Error(data.detail || 'Download was cancelled.');
-            }
-
-            await sleep(1250);
-        }
-
-        throw new Error('Download was cancelled.');
-    }
-
-    function getSafeFilename(info) {
-        const title = info?.title || 'audipella-audio';
-        const safeTitle = title.replace(/[^a-z0-9\s._-]/gi, '').trim().slice(0, 80) || 'audipella-audio';
-        return `${safeTitle}.mp3`;
-    }
-
-    function clickDownloadUrl(url) {
-        const link = document.createElement('a');
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-    }
-
-    function startDirectFetchDownload(url) {
-        const directUrl = withApiKey(`${STREAM_BASE_URL}/fetch?url=${encodeURIComponent(url)}`);
-        clickDownloadUrl(directUrl);
-    }
-
-    function startDirectResultDownload(jobId) {
-        const resultUrl = withApiKey(`${STREAM_BASE_URL}/fetch-result/${encodeURIComponent(jobId)}?wait=1`);
-        clickDownloadUrl(resultUrl);
-    }
-
-    async function readAudioBlobWithProgress(response) {
-        const totalBytes = Number(response.headers.get('content-length')) || 0;
-        const contentType = response.headers.get('content-type') || 'audio/mpeg';
-
-        if (!response.body || !totalBytes) {
-            setDownloadStage(92, 'Saving MP3 to your device...', 'Saving the MP3 file.');
-            return response.blob();
-        }
-
-        const reader = response.body.getReader();
-        const chunks = [];
-        let loadedBytes = 0;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            chunks.push(value);
-            loadedBytes += value.byteLength;
-            const fileProgress = loadedBytes / totalBytes;
-            const displayProgress = 88 + (fileProgress * 11);
-            setDownloadStage(
-                displayProgress,
-                'Saving MP3 to your device...',
-                'Saving the MP3 file.',
-                { percentLabel: `${Math.round(displayProgress)}%` }
-            );
-        }
-
-        return new Blob(chunks, { type: contentType });
-    }
-
-    async function startBrowserDownload(jobId, info) {
-        setDownloadStage(88, 'Receiving MP3 from the server...', 'Saving the MP3 file.');
-
-        let response;
-        try {
-            response = await fetch(`${STREAM_BASE_URL}/fetch-result/${encodeURIComponent(jobId)}`, {
-                method: 'GET',
-                headers: authHeaders()
-            });
-        } catch (error) {
-            if (isNetworkFetchError(error)) {
-                startDirectResultDownload(jobId);
-                setDownloadStage(
-                    38,
-                    'Browser is waiting for the finished MP3...',
-                    'Your browser will save the MP3 when the server finishes.',
-                    { indeterminate: true }
-                );
-                scheduleCompletionCleanup(12000);
-                return;
-            }
-
-            throw error;
-        }
-
-        if (!response.ok) {
-            const payload = await parseResponse(response);
-            throw new Error(payload.error || payload.details || 'Unable to download the audio file.');
-        }
-
-        const blob = await readAudioBlobWithProgress(response);
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = getSafeFilename(info);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
-        setDownloadStage(100, 'Saved to your device.', 'Saved to your device.');
-        scheduleCompletionCleanup();
-    }
-
-    async function startDirectDownloadFallback(url) {
-        setDownloadStage(8, 'Getting video info from the server...', 'Starting server download mode.');
-        await sleep(500);
-        setDownloadStage(16, 'Preparing audio on the server...', 'Preparing audio on the server.');
-        await sleep(700);
-        setDownloadStage(
-            32,
-            'Downloading, converting, and tagging audio...',
-            'Your browser will save the MP3 when the server finishes.',
-            { indeterminate: true }
-        );
-        startDirectFetchDownload(url);
-        scheduleCompletionCleanup(12000);
-    }
-
-    async function startDownload() {
-        const normalizedUrl = normalizeYouTubeUrl(urlInput.value);
-        if (!getYouTubeId(normalizedUrl)) {
-            syncButtonState(true);
-            setFeedback('Use a YouTube video, Shorts, or youtu.be link.', true);
-            return;
-        }
-
-        isBusy = true;
-        clearCompletionCleanup();
-        activeJobId = null;
-        preview?.classList.remove('is-visible');
-        statusPanel?.classList.add('is-visible');
-        if (cancelButton) cancelButton.disabled = true;
-        downloadButton.disabled = true;
-        setDownloadStage(6, 'Getting video info...', 'Getting video info.');
-
-        try {
-            const info = await apiPost('/info', { url: normalizedUrl });
-            showPreview(info);
-            setDownloadStage(14, 'Video info found. Preparing download...', 'Preparing download.');
-
-            const job = await apiPost('/fetch-prepare', {
-                url: normalizedUrl,
-                videoInfo: info
-            });
-
-            activeJobId = job.jobId || job.id;
-            if (!activeJobId) {
-                throw new Error('The audio server did not return a download job.');
-            }
-
-            if (cancelButton) cancelButton.disabled = false;
-            setDownloadStage(getServerProgress(job), getServerDetail(job), getServerFeedback(job));
-
-            const readyJob = await pollUntilReady(activeJobId);
-            await startBrowserDownload(activeJobId, readyJob.videoInfo || info);
-        } catch (error) {
-            if (isNetworkFetchError(error)) {
-                await startDirectDownloadFallback(normalizedUrl);
-            } else {
-                setDownloadStage(0, 'Stopped', error.message || 'Download failed.', { isError: true });
-            }
-        } finally {
-            isBusy = false;
-            activeJobId = null;
-            if (cancelButton) cancelButton.disabled = true;
-            syncButtonState(false, false);
-        }
-    }
-
-    async function cancelDownload() {
-        const jobId = activeJobId;
-        if (!jobId) return;
-
-        if (cancelButton) cancelButton.disabled = true;
-        setProgress(0, 'Cancelling...');
-
-        try {
-            await apiPost(`/fetch-cancel/${encodeURIComponent(jobId)}`, {});
-        } catch (error) {
-        } finally {
-            activeJobId = null;
-            isBusy = false;
-            setFeedback('Download cancelled.', true);
-            syncButtonState(false, false);
-        }
-    }
-
-    urlInput.addEventListener('input', () => {
-        resetDownloadStatus();
-        syncButtonState(false);
-    });
-    urlInput.addEventListener('blur', () => syncButtonState(true));
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        startDownload();
-    });
-    cancelButton?.addEventListener('click', cancelDownload);
-
-    syncButtonState(false);
+.mini-panel p {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
 }
 
-// 11. INITIALIZATION
+.mini-panel strong {
+    display: block;
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.25;
+    color: #ffffff;
+}
 
-initYouTubeDownload();
-syncWaveAnimation();
-syncAmbientAnimation();
-updateNavScrollState();
-setMobileMenuState(false);
-const hashPage = window.location.hash.replace('#', '');
-showPage(hashPage && pages[hashPage] ? hashPage : 'home', { animate: false });
+.hero h1 {
+    font-size: clamp(4.5rem, 7vw, 6.8rem);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fbff00 0%, #28a745 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 24px;
+}
 
-if (finePointer.addEventListener) finePointer.addEventListener('change', syncAmbientAnimation);
-if (hoverCapable.addEventListener) hoverCapable.addEventListener('change', syncAmbientAnimation);
-window.addEventListener('resize', syncAmbientAnimation);
-// A. Handle initial load (e.g., if someone visits site.com/#privacy)
-window.addEventListener('DOMContentLoaded', () => {
-    const hash = window.location.hash.replace('#', '');
-    if (hash && pages[hash]) {
-        showPage(hash);
+.hero .tagline {
+    font-size: 1.3rem;
+    color: #aaa;
+    max-width: 700px;
+    margin: 0 auto 32px;
+}
+
+.hero-copy>h1 {
+    order: 1;
+}
+
+.hero-copy>.tagline {
+    order: 2;
+}
+
+.btn-group {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    order: 4;
+}
+
+.btn-group .btn-secondary {
+    min-width: 0;
+}
+
+.btn-group .btn-secondary span {
+    order: 1;
+}
+
+.btn-group .btn-secondary i {
+    order: 2;
+    font-size: 0.92rem;
+}
+
+#downloadBtn {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+.download-store-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    font: inherit;
+    transition: 0.2s;
+    height: 50px;
+    box-shadow: 0 18px 36px rgba(8, 12, 18, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.download-store-btn:focus-visible {
+    outline: 2px solid rgba(40, 167, 69, 0.9);
+    outline-offset: 3px;
+}
+
+.store-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.store-logo {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 6px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 6px 16px rgba(17, 18, 24, 0.16);
+}
+
+.store-logo img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.store-logo--play {
+    padding: 7px;
+}
+
+.download-store-label {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+    line-height: 1;
+}
+
+.marquee-track {
+    position: relative;
+    overflow: hidden;
+    padding: 18px 0;
+
+}
+
+.marquee-track::before,
+.marquee-track::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.marquee-track::before {
+    left: 0;
+    background: linear-gradient(90deg, #111218 0%, rgba(17, 18, 24, 0) 100%);
+}
+
+.marquee-track::after {
+    right: 0;
+    background: linear-gradient(270deg, #111218 0%, rgba(17, 18, 24, 0) 100%);
+}
+
+.marquee-content {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    animation: marquee-scroll 28s linear infinite;
+    will-change: transform;
+}
+
+.marquee-group {
+    display: flex;
+    gap: 16px;
+    flex: 0 0 auto;
+    padding-left: 24px;
+}
+
+.marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding: 12px 18px;
+    border-radius: 999px;
+
+    color: #f5f7fb;
+    font-size: 0.98rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.marquee-item::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fbff00 0%, #28a745 100%);
+    box-shadow: 0 0 16px rgba(40, 167, 69, 0.45);
+}
+
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
     }
-});
 
-// B. Handle hash changes while the page is already open
-window.onhashchange = () => {
-    const hash = window.location.hash.replace('#', '');
-    if (hash && pages[hash]) {
-        showPage(hash);
+    to {
+        transform: translateX(calc(-50% - 8px));
     }
-};
+}
+
+.btn-primary {
+    background-color: #28a745;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 40px;
+    font-weight: 600;
+    color: #111218;
+    cursor: pointer;
+    transition: 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* 2. The Phone Frame logic */
+.floating>div {
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+    transform-style: preserve-3d;
+}
+
+/* 3. The Hover Effect: Move back (Z-axis) and tilt */
+.floating:hover>div {
+    /* Moves the phone slightly away (-50px) and tilts it back */
+    transform: translateZ(-50px) rotateX(10deg);
+    box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.8),
+        inset 0 0 2px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* 4. Add Depth to the Image (The Parallax Layer) */
+.floating:hover img {
+    /* Push the screen content 'deeper' into the frame on hover */
+    transform: translateZ(20px) scale(0.98);
+    transition: transform 0.5s ease;
+}
+
+#app-root {
+    position: relative;
+    will-change: transform, opacity, filter;
+    transform-origin: center top;
+}
+
+.btn-primary:hover {
+    background-color: #34ce58;
+    transform: scale(1.02);
+}
+
+.btn-primary.download-store-btn {
+    display: inline-flex;
+    text-decoration: none;
+}
+
+.btn-primary.download-store-btn:hover {
+    box-shadow: 0 24px 44px rgba(8, 12, 18, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Desktop-only download button width + home offset */
+@media (min-width: 769px) {
+    #downloadBtn {
+        order: 3;
+        width: 50%;
+        height: 40%;
+    }
+
+    .home-page {
+        margin-top: -80px;
+    }
+
+    .btn-primary.download-store-btn {
+        width: min(100%, 430px);
+        padding: 12px 32px;
+        justify-content: space-between;
+    }
+}
+
+.btn-secondary {
+    background: #ffffff10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 32px;
+    border-radius: 40px;
+    color: white;
+    text-decoration: none;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.btn-secondary span {
+    display: block;
+    line-height: 1.1;
+}
+
+.btn-secondary:hover {
+    background: #ffffff20;
+}
+
+/* feature cards */
+.section-title {
+    font-size: 2.2rem;
+    margin-bottom: 48px;
+    text-align: center;
+    color: white;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+}
+
+.card {
+    background: #ffffff08;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 28px;
+    transition: all 0.25s;
+}
+
+.card:hover {
+    border-color: rgba(40, 167, 69, 0.3);
+    transform: translateY(-4px);
+}
+
+.icon-box {
+    background: #ffffff10;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.icon-box svg {
+    width: 30px;
+    height: 30px;
+    stroke: #28a745;
+    fill: none;
+    stroke-width: 1.7;
+}
+
+.card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.card p {
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.privacy-list {
+    margin: 16px 0 0 22px;
+    color: #bbb;
+    line-height: 1.6;
+}
+
+.privacy-list li+li {
+    margin-top: 10px;
+}
+
+.privacy-list strong {
+    color: white;
+}
+
+.privacy-sublist {
+    margin: 10px 0 0 18px;
+    color: #bbb;
+}
+
+.privacy-sublist li+li {
+    margin-top: 8px;
+}
+
+.info-panel {
+    background: #ffffff08;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 28px;
+    padding: 32px;
+}
+
+/* YouTube download */
+.yt-download-section {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    padding: 82px 0;
+}
+
+.yt-download-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+    gap: clamp(32px, 6vw, 82px);
+    align-items: center;
+}
+
+.yt-download-copy {
+    max-width: 560px;
+}
+
+.yt-download-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    color: #d8ff45;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.yt-download-title {
+    text-align: left;
+    font-size: clamp(2.3rem, 5vw, 4.8rem);
+    line-height: 0.98;
+    margin-bottom: 18px;
+}
+
+.yt-download-subtitle {
+    color: #aeb6c4;
+    font-size: clamp(1rem, 1.8vw, 1.16rem);
+    max-width: 42rem;
+}
+
+.yt-download-card {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)),
+        rgba(13, 16, 22, 0.56);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: clamp(22px, 3vw, 34px);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+}
+
+.yt-download-form {
+    display: grid;
+    gap: 16px;
+}
+
+.yt-download-label {
+    color: white;
+    font-weight: 800;
+}
+
+.yt-download-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.yt-download-input-wrap {
+    position: relative;
+}
+
+.yt-download-input-wrap i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aeb6c4;
+    pointer-events: none;
+}
+
+.yt-download-input {
+    width: 100%;
+    min-height: 58px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    padding: 0 18px 0 50px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.yt-download-input:focus {
+    border-color: rgba(40, 167, 69, 0.78);
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.yt-download-input.is-invalid {
+    border-color: rgba(255, 107, 107, 0.82);
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
+}
+
+.yt-download-button {
+    min-height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 18px;
+    padding: 0 24px;
+    white-space: nowrap;
+}
+
+.yt-download-button:disabled,
+.yt-cancel-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+}
+
+.yt-download-feedback {
+    min-height: 22px;
+    color: #aeb6c4;
+    font-size: 0.92rem;
+}
+
+.yt-download-feedback.is-error {
+    color: #ff6b6b;
+}
+
+.yt-download-status {
+    display: none;
+    gap: 18px;
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.yt-download-status.is-visible {
+    display: grid;
+}
+
+.yt-download-video {
+    display: none;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.yt-download-video.is-visible {
+    display: grid;
+}
+
+.yt-download-thumb {
+    width: 92px;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.yt-download-video-title {
+    color: white;
+    font-weight: 850;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.yt-download-video-meta {
+    color: #aeb6c4;
+    margin-top: 4px;
+    font-size: 0.9rem;
+}
+
+.yt-download-progress-shell {
+    display: grid;
+    gap: 10px;
+}
+
+.yt-download-progress-track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.yt-download-progress-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #51d6ff, #d8ff45, #28a745);
+    transition: width 0.25s ease;
+}
+
+.yt-download-progress-bar.is-indeterminate {
+    width: 100%;
+    background-size: 220% 100%;
+    animation: yt-progress-scan 1.15s linear infinite;
+}
+
+.yt-download-progress-copy {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #aeb6c4;
+    font-size: 0.9rem;
+}
+
+.yt-download-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.yt-cancel-button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 16px;
+}
+
+/* workflow steps */
+.steps {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.step {
+    flex: 1;
+    background: #ffffff08;
+    border-radius: 24px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.step-number {
+    background: #28a74520;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 60px;
+    margin: 0 auto 16px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.workflow-callout {
+    margin-top: 48px;
+    text-align: center;
+}
+
+.workflow-callout-title,
+.privacy-email {
+    color: #28a745;
+}
+
+.workflow-callout-copy {
+    margin-top: 12px;
+}
+
+/* Dual Mode Styles */
+.mode-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.mode-tab {
+    padding: 12px 28px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #9da8b7;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.mode-tab.active {
+    background: linear-gradient(135deg, #1a8f47, #26c05e);
+    border-color: transparent;
+    color: #ffffff;
+}
+
+.mode-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.player-card::before {
+    background: linear-gradient(90deg, #1a8f47, #28a745);
+}
+
+.studio-card::before {
+    background: linear-gradient(90deg, #1a8f47, #26c05e);
+}
+
+.mode-card .icon-box {
+    position: relative;
+}
+
+.player-card .icon-box {
+    color: #28a745;
+}
+
+.studio-card .icon-box {
+    color: #26c05e;
+}
+
+/* Detailed Features Section */
+.detailed-features {
+    padding: 60px 0;
+}
+
+.feature-section {
+    margin-bottom: 64px;
+}
+
+.feature-section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.feature-section-header .icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-section-header .icon-box svg {
+    width: 32px;
+    height: 32px;
+}
+
+.studio-section .feature-section-header .icon-box {
+    background: linear-gradient(135deg, rgba(26, 143, 71, 0.2), rgba(38, 192, 94, 0.1));
+    color: #26c05e;
+}
+
+.player-section .feature-section-header .icon-box {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(96, 165, 250, 0.1));
+    color: #28a745;
+}
+
+.feature-section-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+}
+
+.feature-category {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.feature-category:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.studio-section .feature-category:hover {
+    border-color: rgba(38, 192, 94, 0.2);
+}
+
+.player-section .feature-category:hover {
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.feature-category-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.studio-section .feature-category-title {
+    color: #4ade80;
+}
+
+.player-section .feature-category-title {
+    color: #28a745;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px 32px;
+}
+
+.feature-list li {
+    position: relative;
+    padding-left: 20px;
+    color: #a0a8b8;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.feature-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.studio-section .feature-list li::before {
+    background: #26c05e;
+}
+
+.player-section .feature-list li::before {
+    background: #28a745;
+}
+
+/* faq */
+.faq-item {
+    background: #ffffff08;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    margin-bottom: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.28s ease, background 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.faq-item:hover {
+    border-color: rgba(40, 167, 69, 0.14);
+    transform: translateY(-2px);
+}
+
+.faq-item.open {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(40, 167, 69, 0.2);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+}
+
+.equalizer {
+    --equalizer-base-transform: translateX(50%);
+    position: absolute;
+    top: 48px;
+    right: 0;
+    transform: var(--equalizer-base-transform);
+    transform-origin: top right;
+    z-index: 3;
+    pointer-events: none;
+    line-height: 0;
+    will-change: transform;
+    animation: equalizer-float 4.6s ease-in-out infinite;
+}
+
+#wave-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 60px;
+}
+
+#wave-container .bar {
+    width: 5px;
+    height: 12px;
+    border-radius: 3px;
+    background: #28a745;
+    opacity: 0.6;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.34);
+}
+
+@keyframes equalizer-float {
+
+    0%,
+    100% {
+        transform: var(--equalizer-base-transform) translateY(0);
+    }
+
+    50% {
+        transform: var(--equalizer-base-transform) translateY(-12px);
+    }
+}
+
+@keyframes mini-panel-float {
+
+    0%,
+    100% {
+        transform: var(--mini-panel-base-transform) translateY(0);
+    }
+
+    50% {
+        transform: var(--mini-panel-base-transform) translateY(-14px);
+    }
+}
+
+.faq-question {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.faq-question span {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #28a745;
+    transition: transform 0.28s ease, background 0.28s ease, color 0.28s ease;
+}
+
+.faq-item.open .faq-question span {
+    transform: rotate(180deg);
+    background: rgba(40, 167, 69, 0.18);
+    color: #ffffff;
+}
+
+.faq-answer {
+    margin-top: 0;
+    color: #bbb;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, margin-top 0.38s ease;
+}
+
+.faq-item.open .faq-answer {
+    margin-top: 12px;
+    opacity: 1;
+}
+
+.support-callout {
+    margin-top: 48px;
+    padding: 32px;
+    text-align: center;
+    background: #ffffff08;
+    border-radius: 24px;
+}
+
+.support-callout p {
+    margin: 16px 0;
+}
+
+.support-callout .btn-secondary {
+    display: inline-flex;
+}
+
+footer {
+    text-align: center;
+    padding: 40px 0;
+    color: #666;
+    font-size: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-meta {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #d8dde7;
+    font-weight: 600;
+}
+
+.footer-brand img {
+    width: auto;
+    height: 12px;
+    display: block;
+}
+
+.footer-divider {
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.footer-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.68);
+    text-decoration: none;
+    backdrop-filter: blur(12px) saturate(135%);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-links a:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(40, 167, 69, 0.18);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* Large-screen hero layout */
+@media (min-width: 960px) {
+    .hero-layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+        align-items: center;
+        gap: clamp(40px, 6vw, 96px);
+    }
+
+    .phone-mockup-container {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .hero-copy {
+        max-width: 640px;
+        text-align: left;
+        align-items: flex-start;
+        justify-self: end;
+    }
+
+    .hero .tagline {
+        margin: 0 0 32px;
+    }
+
+    .btn-group {
+        justify-content: flex-start;
+    }
+
+    #downloadBtn {
+        justify-content: flex-start;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+
+    /* Mobile nav */
+    .nav-container {
+        position: relative;
+        align-items: center;
+        row-gap: 0;
+    }
+
+    .brand-link {
+        gap: 10px;
+    }
+
+    .brand-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+    }
+
+    .home-page {
+        margin-top: -30px;
+    }
+
+    .phone-frame {
+        position: relative;
+        width: min(var(--phone-width, 300px), 60vw) !important;
+        max-width: 80vw;
+        height: auto;
+        padding: 10px;
+        background: #1a1a1a;
+        border-radius: 38px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 2px 2px rgba(255, 255, 255, 0.1);
+        border: 1.5px solid #333;
+        margin: 0 auto;
+        transition: transform 0.1s ease-out;
+        will-change: transform;
+    }
+
+    .brand-mark {
+        height: 22px;
+    }
+
+    .brand-name {
+        font-size: 1.05rem;
+    }
+
+    /* Mobile hero spacing */
+    .hero {
+        padding-top: 30px;
+        padding-bottom: 72px;
+    }
+
+    .hero-layout {
+        gap: 18px;
+    }
+
+    .nav-links {
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+    }
+
+    .nav-links-shell-frame {
+        display: block;
+        position: static;
+        flex: 0 0 100%;
+        width: 100%;
+        z-index: auto;
+        opacity: 0;
+        visibility: hidden;
+        overflow: hidden;
+        pointer-events: none;
+        padding: 0;
+        margin-top: 0;
+        border: 0;
+        border-top: 1px solid transparent;
+        border-radius: 0;
+        background: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: none;
+        transform: none;
+        transition:
+            opacity 0.24s ease,
+            margin-top 0.28s ease,
+            border-color 0.28s ease,
+            visibility 0s linear 0.34s;
+    }
+
+    .nav-links-shell-frame.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        margin-top: 10px;
+        border-top-color: rgba(255, 255, 255, 0.08);
+        transition-delay: 0s, 0s, 0s, 0s;
+    }
+
+    .nav-links-shell-frame>.nav-links-shell,
+    .nav-links-shell-frame>.nav-links-shell.show,
+    .nav-links-shell-frame>.nav-links-shell.hidden {
+        display: block;
+        position: static;
+        z-index: auto;
+        max-height: 0;
+        opacity: 1;
+        visibility: visible;
+        overflow: hidden;
+        pointer-events: auto;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        backdrop-filter: none;
+        box-shadow: none;
+        transform: none;
+        transition: max-height 0.34s ease;
+    }
+
+    .nav-links-shell-frame>.nav-links-shell.hidden {
+        max-height: 0;
+    }
+
+    .nav-links-shell-frame>.nav-links-shell.show {
+        max-height: 280px;
+    }
+
+    .nav-links a {
+        width: 100%;
+        padding: 15px 10px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: color 0.2s ease, opacity 0.24s ease, transform 0.24s ease;
+    }
+
+    .nav-links a+a {
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .nav-links-shell.show .nav-links a {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .nav-links-shell.show .nav-links a:nth-child(1) {
+        transition-delay: 0.04s;
+    }
+
+    .nav-links-shell.show .nav-links a:nth-child(2) {
+        transition-delay: 0.08s;
+    }
+
+    .nav-links-shell.show .nav-links a:nth-child(3) {
+        transition-delay: 0.12s;
+    }
+
+    .nav-links-shell.show .nav-links a:nth-child(4) {
+        transition-delay: 0.16s;
+    }
+
+    .nav-links-shell.show .nav-links a:nth-child(5) {
+        transition-delay: 0.2s;
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
+    }
+
+    .phone-mockup-container {
+        padding: 0 0 6px;
+    }
+
+    /* Mobile hero copy + download CTA */
+    .hero-copy {
+        max-width: 100%;
+    }
+
+    .hero h1 {
+        order: 2;
+        font-size: clamp(3.4rem, 12vw, 4.6rem);
+        margin-bottom: 14px;
+    }
+
+    .hero .tagline {
+        order: 3;
+        font-size: 1.08rem;
+        margin: 0 auto 24px;
+    }
+
+    #downloadBtn {
+        order: 1;
+        width: 100%;
+        margin-bottom: 22px;
+        justify-content: center;
+    }
+
+    .download-store-btn {
+        width: min(100%, 340px);
+        gap: 12px;
+    }
+
+    .store-logo {
+        width: 32px;
+        height: 32px;
+        padding: 5px;
+    }
+
+    /* Mobile floating phone overlays */
+    .equalizer {
+        --equalizer-base-transform: translateX(50%) scale(0.98);
+    }
+
+    #wave-container {
+        gap: 3px;
+        height: 38px;
+    }
+
+    #wave-container .bar {
+        width: 3px;
+    }
+
+    .mini-panel {
+        left: 0;
+        bottom: 100px;
+        --mini-panel-base-transform: translateX(-25%);
+        gap: 2px;
+        width: min(112px, 38%);
+        padding: 7px 8px;
+        border-radius: 11px;
+    }
+
+    .mini-panel p {
+        font-size: 0.32rem;
+    }
+
+    .mini-panel strong {
+        font-size: 0.38rem;
+        line-height: 1.2;
+    }
+
+    /* Mobile hero action buttons */
+    .btn-group {
+        order: 4;
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    .btn-group .btn-secondary {
+        width: 100%;
+        min-width: 0;
+        min-height: 54px;
+        padding: 14px 18px;
+        border-radius: 18px;
+        font-size: 0.95rem;
+        justify-content: space-between;
+        gap: 14px;
+        white-space: normal;
+    }
+
+    .btn-group .btn-secondary i {
+        font-size: 0.9rem;
+    }
+
+    /* Mobile section1 alignment */
+    .section-one .section-title {
+        text-align: left;
+        margin-bottom: 28px;
+    }
+
+    #support-page .section-title {
+        font-size: 1.9rem;
+        margin-bottom: 32px;
+    }
+
+    #support-page .faq-item {
+        padding: 16px 18px;
+        border-radius: 18px;
+    }
+
+    #support-page .faq-question {
+        font-size: 0.98rem;
+        gap: 12px;
+    }
+
+    #support-page .faq-answer {
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    #support-page .support-callout {
+        margin-top: 32px;
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    #support-page .support-callout h3 {
+        font-size: 1.05rem;
+    }
+
+    #support-page .support-callout p {
+        font-size: 0.9rem;
+        margin: 12px 0;
+    }
+
+    #support-page .support-callout .btn-secondary {
+        min-height: 44px;
+        padding: 10px 18px;
+        font-size: 0.88rem;
+    }
+
+    .yt-download-section {
+        min-height: auto;
+        padding: 54px 0 66px;
+    }
+
+    .yt-download-layout {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .yt-download-title {
+        font-size: 2rem;
+        margin-bottom: 14px;
+    }
+
+    .yt-download-subtitle {
+        font-size: 0.96rem;
+    }
+
+    .yt-download-card {
+        padding: 20px;
+        border-radius: 22px;
+    }
+
+    .yt-download-input-row {
+        grid-template-columns: 1fr;
+    }
+
+    .yt-download-button {
+        width: 100%;
+    }
+
+    .yt-download-video {
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    .yt-download-thumb {
+        width: 76px;
+        border-radius: 14px;
+    }
+
+    .yt-download-progress-copy {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Mobile footer links */
+    .footer-links {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .footer-links a {
+        padding: 9px 14px;
+        font-size: 0.82rem;
+    }
+
+    /* Mobile marquee + section spacing */
+    .marquee-track {
+        padding: 14px 0;
+    }
+
+    .marquee-track::before,
+    .marquee-track::after {
+        width: 40px;
+    }
+
+    .marquee-group {
+        gap: 12px;
+        padding-left: 16px;
+    }
+
+    .marquee-item {
+        padding: 10px 15px;
+        font-size: 0.92rem;
+    }
+
+    section {
+        padding: 60px 0;
+    }
+
+    /* Mobile detailed features */
+    .detailed-features {
+        padding: 40px 0;
+    }
+
+    .feature-section-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        margin-bottom: 28px;
+        padding-bottom: 16px;
+    }
+
+    .feature-section-header .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+    }
+
+    .feature-section-header .icon-box svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    .feature-section-title {
+        font-size: 1.5rem;
+    }
+
+    .feature-category {
+        padding: 18px 20px;
+        margin-bottom: 16px;
+    }
+
+    .feature-category-title {
+        font-size: 1.05rem;
+    }
+
+    .feature-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .feature-list li {
+        font-size: 0.9rem;
+    }
+}
+
+
+
+.hidden {
+    display: none;
+}
+
+@keyframes gradientMove {
+
+    0%,
+    100% {
+        background-position: 14% 16%, 86% 12%, 50% 50%;
+    }
+
+    50% {
+        background-position: 86% 84%, 14% 88%, 50% 50%;
+    }
+}
+
+@keyframes yt-progress-scan {
+    from {
+        background-position: 0% 50%;
+    }
+
+    to {
+        background-position: 220% 50%;
+    }
+}
