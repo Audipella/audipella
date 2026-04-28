@@ -514,6 +514,7 @@ function initYouTubeDownload() {
 
     let activeJobId = null;
     let isBusy = false;
+    let completionCleanupTimer = null;
 
     function isNetworkFetchError(error) {
         return error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(error?.message || '');
@@ -594,12 +595,32 @@ function initYouTubeDownload() {
         setFeedback(feedbackMessage, Boolean(options.isError));
     }
 
+    function clearCompletionCleanup() {
+        if (completionCleanupTimer !== null) {
+            window.clearTimeout(completionCleanupTimer);
+            completionCleanupTimer = null;
+        }
+    }
+
     function resetDownloadStatus() {
         if (isBusy) return;
+        clearCompletionCleanup();
         activeJobId = null;
         preview?.classList.remove('is-visible');
         statusPanel?.classList.remove('is-visible');
         setProgress(0, 'Waiting...');
+    }
+
+    function scheduleCompletionCleanup(delay = 2600) {
+        clearCompletionCleanup();
+        completionCleanupTimer = window.setTimeout(() => {
+            completionCleanupTimer = null;
+            if (isBusy) return;
+            preview?.classList.remove('is-visible');
+            statusPanel?.classList.remove('is-visible');
+            setProgress(0, 'Waiting...');
+            syncButtonState(false);
+        }, delay);
     }
 
     function formatDuration(value) {
@@ -828,6 +849,7 @@ function initYouTubeDownload() {
                     'Your browser will save the MP3 when the server finishes.',
                     { indeterminate: true }
                 );
+                scheduleCompletionCleanup(12000);
                 return;
             }
 
@@ -849,6 +871,7 @@ function initYouTubeDownload() {
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
         setDownloadStage(100, 'Saved to your device.', 'Saved to your device.');
+        scheduleCompletionCleanup();
     }
 
     async function startDirectDownloadFallback(url) {
@@ -863,6 +886,7 @@ function initYouTubeDownload() {
             { indeterminate: true }
         );
         startDirectFetchDownload(url);
+        scheduleCompletionCleanup(12000);
     }
 
     async function startDownload() {
@@ -874,6 +898,7 @@ function initYouTubeDownload() {
         }
 
         isBusy = true;
+        clearCompletionCleanup();
         activeJobId = null;
         preview?.classList.remove('is-visible');
         statusPanel?.classList.add('is-visible');
