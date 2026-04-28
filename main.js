@@ -515,6 +515,9 @@ function initYouTubeDownload() {
     let activeJobId = null;
     let isBusy = false;
     let completionCleanupTimer = null;
+    let browserSavePending = false;
+    const isIOSBrowser = /iPad|iPhone|iPod/i.test(navigator.userAgent || '')
+        || ((navigator.platform || '') === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     function isNetworkFetchError(error) {
         return error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(error?.message || '');
@@ -605,22 +608,37 @@ function initYouTubeDownload() {
     function resetDownloadStatus() {
         if (isBusy) return;
         clearCompletionCleanup();
+        browserSavePending = false;
         activeJobId = null;
         preview?.classList.remove('is-visible');
         statusPanel?.classList.remove('is-visible');
         setProgress(0, 'Waiting...');
     }
 
-    function scheduleCompletionCleanup(delay = 2600) {
+    function scheduleCompletionCleanup(delay = 2600, { force = false } = {}) {
         clearCompletionCleanup();
         completionCleanupTimer = window.setTimeout(() => {
             completionCleanupTimer = null;
-            if (isBusy) return;
+            if (isBusy && !browserSavePending && !force) return;
+            browserSavePending = false;
+            isBusy = false;
+            activeJobId = null;
+            if (cancelButton) cancelButton.disabled = true;
             preview?.classList.remove('is-visible');
             statusPanel?.classList.remove('is-visible');
             setProgress(0, 'Waiting...');
             syncButtonState(false);
         }, delay);
+    }
+
+    function markBrowserSaveHandoff(delay = 2600) {
+        browserSavePending = true;
+        scheduleCompletionCleanup(delay, { force: true });
+    }
+
+    function cleanupAfterNativeSaveReturn() {
+        if (!browserSavePending) return;
+        scheduleCompletionCleanup(450, { force: true });
     }
 
     function formatDuration(value) {
@@ -849,7 +867,7 @@ function initYouTubeDownload() {
                     'Your browser will save the MP3 when the server finishes.',
                     { indeterminate: true }
                 );
-                scheduleCompletionCleanup(12000);
+                markBrowserSaveHandoff(12000);
                 return;
             }
 
@@ -867,11 +885,15 @@ function initYouTubeDownload() {
         link.href = blobUrl;
         link.download = getSafeFilename(info);
         document.body.appendChild(link);
+        markBrowserSaveHandoff(isIOSBrowser ? 9000 : 2600);
         link.click();
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
-        setDownloadStage(100, 'Saved to your device.', 'Saved to your device.');
-        scheduleCompletionCleanup();
+        setDownloadStage(
+            100,
+            isIOSBrowser ? 'Finish the iOS save dialog.' : 'Saved to your device.',
+            isIOSBrowser ? 'Finish the iOS save dialog.' : 'Saved to your device.'
+        );
     }
 
     async function startDirectDownloadFallback(url) {
@@ -886,7 +908,7 @@ function initYouTubeDownload() {
             { indeterminate: true }
         );
         startDirectFetchDownload(url);
-        scheduleCompletionCleanup(12000);
+        markBrowserSaveHandoff(12000);
     }
 
     async function startDownload() {
@@ -899,6 +921,7 @@ function initYouTubeDownload() {
 
         isBusy = true;
         clearCompletionCleanup();
+        browserSavePending = false;
         activeJobId = null;
         preview?.classList.remove('is-visible');
         statusPanel?.classList.add('is-visible');
@@ -968,6 +991,11 @@ function initYouTubeDownload() {
         startDownload();
     });
     cancelButton?.addEventListener('click', cancelDownload);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) cleanupAfterNativeSaveReturn();
+    });
+    window.addEventListener('focus', cleanupAfterNativeSaveReturn);
+    window.addEventListener('pageshow', cleanupAfterNativeSaveReturn);
 
     syncButtonState(false);
 }
