@@ -975,6 +975,227 @@ section {
     padding: 32px;
 }
 
+/* YouTube download */
+.yt-download-section {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    padding: 82px 0;
+}
+
+.yt-download-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+    gap: clamp(32px, 6vw, 82px);
+    align-items: center;
+}
+
+.yt-download-copy {
+    max-width: 560px;
+}
+
+.yt-download-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    color: #d8ff45;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.yt-download-title {
+    text-align: left;
+    font-size: clamp(2.3rem, 5vw, 4.8rem);
+    line-height: 0.98;
+    margin-bottom: 18px;
+}
+
+.yt-download-subtitle {
+    color: #aeb6c4;
+    font-size: clamp(1rem, 1.8vw, 1.16rem);
+    max-width: 42rem;
+}
+
+.yt-download-card {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)),
+        rgba(13, 16, 22, 0.56);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: clamp(22px, 3vw, 34px);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+}
+
+.yt-download-form {
+    display: grid;
+    gap: 16px;
+}
+
+.yt-download-label {
+    color: white;
+    font-weight: 800;
+}
+
+.yt-download-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.yt-download-input-wrap {
+    position: relative;
+}
+
+.yt-download-input-wrap i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aeb6c4;
+    pointer-events: none;
+}
+
+.yt-download-input {
+    width: 100%;
+    min-height: 58px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    padding: 0 18px 0 50px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.yt-download-input:focus {
+    border-color: rgba(40, 167, 69, 0.78);
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.yt-download-input.is-invalid {
+    border-color: rgba(255, 107, 107, 0.82);
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
+}
+
+.yt-download-button {
+    min-height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 18px;
+    padding: 0 24px;
+    white-space: nowrap;
+}
+
+.yt-download-button:disabled,
+.yt-cancel-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+}
+
+.yt-download-feedback {
+    min-height: 22px;
+    color: #aeb6c4;
+    font-size: 0.92rem;
+}
+
+.yt-download-feedback.is-error {
+    color: #ff6b6b;
+}
+
+.yt-download-status {
+    display: none;
+    gap: 18px;
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.yt-download-status.is-visible {
+    display: grid;
+}
+
+.yt-download-video {
+    display: none;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.yt-download-video.is-visible {
+    display: grid;
+}
+
+.yt-download-thumb {
+    width: 92px;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.yt-download-video-title {
+    color: white;
+    font-weight: 850;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.yt-download-video-meta {
+    color: #aeb6c4;
+    margin-top: 4px;
+    font-size: 0.9rem;
+}
+
+.yt-download-progress-shell {
+    display: grid;
+    gap: 10px;
+}
+
+.yt-download-progress-track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.yt-download-progress-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #51d6ff, #d8ff45, #28a745);
+    transition: width 0.25s ease;
+}
+
+.yt-download-progress-copy {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #aeb6c4;
+    font-size: 0.9rem;
+}
+
+.yt-download-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.yt-cancel-button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 16px;
+}
+
 /* workflow steps */
 .steps {
     display: flex;
@@ -1763,6 +1984,52 @@ footer {
         min-height: 44px;
         padding: 10px 18px;
         font-size: 0.88rem;
+    }
+
+    .yt-download-section {
+        min-height: auto;
+        padding: 54px 0 66px;
+    }
+
+    .yt-download-layout {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .yt-download-title {
+        font-size: 2rem;
+        margin-bottom: 14px;
+    }
+
+    .yt-download-subtitle {
+        font-size: 0.96rem;
+    }
+
+    .yt-download-card {
+        padding: 20px;
+        border-radius: 22px;
+    }
+
+    .yt-download-input-row {
+        grid-template-columns: 1fr;
+    }
+
+    .yt-download-button {
+        width: 100%;
+    }
+
+    .yt-download-video {
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    .yt-download-thumb {
+        width: 76px;
+        border-radius: 14px;
+    }
+
+    .yt-download-progress-copy {
+        flex-direction: column;
+        gap: 4px;
     }
 
     /* Mobile footer links */
