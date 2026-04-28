@@ -569,22 +569,37 @@ function initYouTubeDownload() {
         feedback.classList.toggle('is-error', isError);
     }
 
-    function syncButtonState(showInvalid = false) {
+    function syncButtonState(showInvalid = false, updateFeedback = true) {
         const hasValidUrl = Boolean(getYouTubeId(urlInput.value));
         downloadButton.disabled = isBusy || !hasValidUrl;
         urlInput.classList.toggle('is-invalid', showInvalid && Boolean(urlInput.value.trim()) && !hasValidUrl);
 
-        if (!isBusy) {
-            setFeedback(hasValidUrl ? 'Ready to download.' : '', false);
+        if (!isBusy && updateFeedback) {
+            setFeedback(hasValidUrl ? 'Ready to download.' : 'Enter a valid YouTube link to enable download.', false);
         }
     }
 
-    function setProgress(percent, detail) {
+    function setProgress(percent, detail, options = {}) {
         if (!progressBar || !progressPercent || !progressText) return;
+        const { indeterminate = false, percentLabel = null } = options;
         const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
-        progressBar.style.width = `${safePercent}%`;
-        progressPercent.textContent = `${Math.round(safePercent)}%`;
+        progressBar.classList.toggle('is-indeterminate', indeterminate);
+        progressBar.style.width = indeterminate ? '100%' : `${safePercent}%`;
+        progressPercent.textContent = percentLabel || (indeterminate ? 'Working' : `${Math.round(safePercent)}%`);
         progressText.textContent = detail || 'Working...';
+    }
+
+    function setDownloadStage(percent, detail, feedbackMessage = detail, options = {}) {
+        setProgress(percent, detail, options);
+        setFeedback(feedbackMessage, Boolean(options.isError));
+    }
+
+    function resetDownloadStatus() {
+        if (isBusy) return;
+        activeJobId = null;
+        preview?.classList.remove('is-visible');
+        statusPanel?.classList.remove('is-visible');
+        setProgress(0, 'Waiting...');
     }
 
     function formatDuration(value) {
@@ -665,16 +680,63 @@ function initYouTubeDownload() {
         return payload;
     }
 
+    function getServerProgress(data) {
+        if (data?.status === 'ready') return 86;
+        return Math.min(84, Math.max(0, Number(data?.progressPercent) || 0));
+    }
+
+    function getServerDetail(data) {
+        const detail = typeof data?.detail === 'string' ? data.detail.trim() : '';
+        if (detail) return detail;
+
+        switch (data?.phase || data?.status) {
+            case 'queued':
+                return 'Queued on the audio server...';
+            case 'preparing':
+                return 'Preparing audio...';
+            case 'downloading':
+                return 'Downloading audio...';
+            case 'converting':
+                return 'Converting to MP3...';
+            case 'tagging':
+                return 'Embedding metadata...';
+            case 'ready':
+                return 'Audio is ready to save.';
+            default:
+                return 'Preparing audio...';
+        }
+    }
+
+    function getServerFeedback(data) {
+        switch (data?.phase || data?.status) {
+            case 'queued':
+                return 'Queued on the server.';
+            case 'preparing':
+                return 'Preparing the audio file.';
+            case 'downloading':
+                return 'Downloading audio from YouTube.';
+            case 'converting':
+                return 'Converting audio to MP3.';
+            case 'tagging':
+                return 'Adding title and artwork metadata.';
+            case 'ready':
+                return 'Audio is ready. Saving now.';
+            default:
+                return 'Processing audio...';
+        }
+    }
+
     async function pollUntilReady(jobId) {
         while (activeJobId === jobId) {
             const data = await apiGet(`/fetch-status/${encodeURIComponent(jobId)}`);
-            setProgress(data.progressPercent || 0, data.detail || 'Preparing audio...');
+            setDownloadStage(getServerProgress(data), getServerDetail(data), getServerFeedback(data));
 
             if (data.videoInfo) {
                 showPreview(data.videoInfo);
             }
 
             if (data.status === 'ready') {
+                setDownloadStage(86, 'Audio is ready. Preparing browser save...', 'Audio is ready. Saving now.');
                 return data;
             }
 
@@ -716,8 +778,40 @@ function initYouTubeDownload() {
         clickDownloadUrl(resultUrl);
     }
 
+    async function readAudioBlobWithProgress(response) {
+        const totalBytes = Number(response.headers.get('content-length')) || 0;
+        const contentType = response.headers.get('content-type') || 'audio/mpeg';
+
+        if (!response.body || !totalBytes) {
+            setDownloadStage(92, 'Saving MP3 to your device...', 'Saving the MP3 file.');
+            return response.blob();
+        }
+
+        const reader = response.body.getReader();
+        const chunks = [];
+        let loadedBytes = 0;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            loadedBytes += value.byteLength;
+            const fileProgress = loadedBytes / totalBytes;
+            const displayProgress = 88 + (fileProgress * 11);
+            setDownloadStage(
+                displayProgress,
+                'Saving MP3 to your device...',
+                'Saving the MP3 file.',
+                { percentLabel: `${Math.round(displayProgress)}%` }
+            );
+        }
+
+        return new Blob(chunks, { type: contentType });
+    }
+
     async function startBrowserDownload(jobId, info) {
-        setProgress(96, 'Starting browser download...');
+        setDownloadStage(88, 'Receiving MP3 from the server...', 'Saving the MP3 file.');
 
         let response;
         try {
@@ -728,6 +822,12 @@ function initYouTubeDownload() {
         } catch (error) {
             if (isNetworkFetchError(error)) {
                 startDirectResultDownload(jobId);
+                setDownloadStage(
+                    38,
+                    'Browser is waiting for the finished MP3...',
+                    'Your browser will save the MP3 when the server finishes.',
+                    { indeterminate: true }
+                );
                 return;
             }
 
@@ -739,7 +839,7 @@ function initYouTubeDownload() {
             throw new Error(payload.error || payload.details || 'Unable to download the audio file.');
         }
 
-        const blob = await response.blob();
+        const blob = await readAudioBlobWithProgress(response);
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = blobUrl;
@@ -748,6 +848,21 @@ function initYouTubeDownload() {
         link.click();
         link.remove();
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+        setDownloadStage(100, 'Saved to your device.', 'Saved to your device.');
+    }
+
+    async function startDirectDownloadFallback(url) {
+        setDownloadStage(8, 'Getting video info from the server...', 'Starting server download mode.');
+        await sleep(500);
+        setDownloadStage(16, 'Preparing audio on the server...', 'Preparing audio on the server.');
+        await sleep(700);
+        setDownloadStage(
+            32,
+            'Downloading, converting, and tagging audio...',
+            'Your browser will save the MP3 when the server finishes.',
+            { indeterminate: true }
+        );
+        startDirectFetchDownload(url);
     }
 
     async function startDownload() {
@@ -764,13 +879,12 @@ function initYouTubeDownload() {
         statusPanel?.classList.add('is-visible');
         if (cancelButton) cancelButton.disabled = true;
         downloadButton.disabled = true;
-        setFeedback('Preparing your audio...', false);
-        setProgress(6, 'Checking video...');
+        setDownloadStage(6, 'Getting video info...', 'Getting video info.');
 
         try {
             const info = await apiPost('/info', { url: normalizedUrl });
             showPreview(info);
-            setProgress(14, 'Starting download...');
+            setDownloadStage(14, 'Video info found. Preparing download...', 'Preparing download.');
 
             const job = await apiPost('/fetch-prepare', {
                 url: normalizedUrl,
@@ -783,26 +897,21 @@ function initYouTubeDownload() {
             }
 
             if (cancelButton) cancelButton.disabled = false;
-            setProgress(job.progressPercent || 18, job.detail || 'Downloading audio...');
+            setDownloadStage(getServerProgress(job), getServerDetail(job), getServerFeedback(job));
 
             const readyJob = await pollUntilReady(activeJobId);
             await startBrowserDownload(activeJobId, readyJob.videoInfo || info);
-            setProgress(100, 'Download started.');
-            setFeedback('Download started.', false);
         } catch (error) {
             if (isNetworkFetchError(error)) {
-                startDirectFetchDownload(normalizedUrl);
-                setProgress(100, 'Download started.');
-                setFeedback('Download started.', false);
+                await startDirectDownloadFallback(normalizedUrl);
             } else {
-                setFeedback(error.message || 'Download failed.', true);
-                setProgress(0, 'Stopped');
+                setDownloadStage(0, 'Stopped', error.message || 'Download failed.', { isError: true });
             }
         } finally {
             isBusy = false;
             activeJobId = null;
             if (cancelButton) cancelButton.disabled = true;
-            syncButtonState(false);
+            syncButtonState(false, false);
         }
     }
 
@@ -820,11 +929,14 @@ function initYouTubeDownload() {
             activeJobId = null;
             isBusy = false;
             setFeedback('Download cancelled.', true);
-            syncButtonState(false);
+            syncButtonState(false, false);
         }
     }
 
-    urlInput.addEventListener('input', () => syncButtonState(false));
+    urlInput.addEventListener('input', () => {
+        resetDownloadStatus();
+        syncButtonState(false);
+    });
     urlInput.addEventListener('blur', () => syncButtonState(true));
     form.addEventListener('submit', (event) => {
         event.preventDefault();
